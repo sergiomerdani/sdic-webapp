@@ -1,20 +1,18 @@
-# Introduction 
-TODO: Give a short introduction of your project. Let this section explain the objectives or the motivation behind this project. 
+# OpenLayers + Vite
 
-# Getting Started
-TODO: Guide users through getting your code up and running on their own system. In this section you can talk about:
-1.	Installation process
-2.	Software dependencies
-3.	Latest releases
-4.	API references
+This example demonstrates how the `ol` package can be used with [Vite](https://vitejs.dev/).
 
-# Build and Test
-TODO: Describe and show how to build your code and run the tests. 
+To get started, run the following (requires Node 14+):
 
-# Contribute
-TODO: Explain how other users and developers can contribute to make your code better. 
+    npx create-ol-app my-app --template vite
 
-If you want to learn more about creating good readme files then refer the following [guidelines](https://docs.microsoft.com/en-us/azure/devops/repos/git/create-a-readme?view=azure-devops). You can also seek inspiration from the below readme files:
-- [ASP.NET Core](https://github.com/aspnet/Home)
-- [Visual Studio Code](https://github.com/Microsoft/vscode)
-- [Chakra Core](https://github.com/Microsoft/ChakraCore)
+Then change into your new `my-app` directory and start a development server (available at http://localhost:5173):
+
+    cd my-app
+    npm start
+
+To generate a build ready for production:
+
+    npm run build
+
+Then deploy the contents of the `dist` directory to your server.  You can also run `npm run serve` to serve the results of the `dist` directory for preview.
