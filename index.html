@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link
+      rel="icon"
+      type="image/x-icon"
+      href="https://openlayers.org/favicon.ico"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script
+      src="https://kit.fontawesome.com/ddf386aee4.js"
+      crossorigin="anonymous"
+    ></script>
+    <title>SHKSH GIS</title>
+  </head>
+  <body>
+    <div class="grid-container">
+      <div class="navbar">
+        <div class="buttons">
+          <button class="fa-button" id="identify" title="Get Information">
+            <i class="fa-solid fa-circle-info"></i>
+          </button>
+          <button class="fa-button" id="graticuleButton" title="Show/Hide Grid">
+            <i class="fa-solid fa-table-cells-large"></i>
+          </button>
+          <button
+            class="fa-button"
+            id="getGeolocation"
+            title="Your Current Location"
+          >
+            <i class="fa-solid fa-location-dot"></i>
+          </button>
+          <button class="fa-button" id="measure-length" title="Measure Length">
+            <i class="fa-solid fa-ruler"></i>
+          </button>
+          <button class="fa-button" id="measure-area" title="Measure Area">
+            <i class="fa-solid fa-ruler-combined"></i>
+          </button>
+          <label for="segments">Show segment lengths: </label>
+          <input type="checkbox" id="segments" checked />
+          <label for="clear">Clear previous measure: </label>
+          <input type="checkbox" id="clear" checked />
+        </div>
+      </div>
+      <div id="map"></div>
+    </div>
+    <div id="popup" class="ol-popup">
+      <a href="#" id="popup-closer" class="ol-popup-closer"></a>
+      <div id="popup-content"></div>
+    </div>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>
