@@ -5,7 +5,7 @@ import { OSM, BingMaps, Vector as VectorSource, XYZ } from "ol/source";
 import VectorLayer from "ol/layer/Vector";
 import proj4 from "proj4";
 import { register } from "ol/proj/proj4";
-import { Projection, fromLonLat } from "ol/proj";
+import { Projection, fromLonLat, transform, useGeographic } from "ol/proj";
 import Tile from "ol/layer/Tile";
 import TileWMS from "ol/source/TileWMS.js";
 import {
@@ -20,7 +20,11 @@ import {
   Rotate,
 } from "ol/control";
 import DragRotate from "ol/interaction/DragRotate";
-import { click, altKeyOnly } from "ol/events/condition";
+import {
+  click,
+  altKeyOnly,
+  platformModifierKeyOnly,
+} from "ol/events/condition";
 import { toStringXY } from "ol/coordinate";
 import LayerSwitcher from "ol-ext/control/LayerSwitcher";
 import LayerGroup from "ol/layer/Group";
@@ -42,6 +46,7 @@ import Graticule from "ol/layer/Graticule.js";
 import Geolocation from "ol/Geolocation.js";
 import Popup from "ol-ext/overlay/Popup";
 import Select from "ol/interaction/Select";
+import { DragPan } from "ol/interaction";
 
 proj4.defs(
   "EPSG:6870",
@@ -49,10 +54,17 @@ proj4.defs(
 );
 register(proj4);
 
+proj4.defs(
+  "EPSG:32634",
+  "+proj=utm +zone=34 +datum=WGS84 +units=m +no_defs +type=crs"
+);
+
+register(proj4);
 const krgjshProjection = new Projection({
   code: "EPSG:6870",
   extent: [-2963585.56, 3639475.76, 2404277.44, 9525908.77],
   worldExtent: [-90, -90, 90, 90],
+  units: "m",
 });
 
 const krgjshCenter = fromLonLat([19.818913, 41.328608], "EPSG:6870");
@@ -63,8 +75,16 @@ const attributionControl = new Attribution({
 });
 
 // Zoom Extent ol-Control
-const zoomExtend = new ZoomToExtent({
-  extent: [345385.09991, 4319495.500793, 609873.6757, 4758401.232114],
+const zoomExtentBtn = document.getElementById("zoom-extent");
+
+zoomExtentBtn.addEventListener("click", function () {
+  map
+    .getView()
+    .fit([345385.09991, 4319495.500793, 609873.6757, 4758401.232114], {
+      padding: [10, 10, 10, 10], // Optional padding around the extent
+      maxZoom: 18, // Optional maximum zoom level
+    });
+  calculateScale();
 });
 
 //Full Screen COntrol
@@ -90,7 +110,7 @@ const scaleLineControl = new ScaleLine({
   units: "metric",
   bar: true,
   steps: 6,
-  text: true,
+  // text: true,
   className: "ol-scale-bar",
 });
 
@@ -129,16 +149,30 @@ overViewMap.getOverviewMap().getOverlayContainer().appendChild(staticContent);
 //Rotate COntrol
 const rotate = new Rotate();
 
+//DRAGPAN MAP
+
+const dragPanBtn = document.getElementById("pan");
+
+const dragPan = new DragPan({
+  condition: function (event) {
+    return platformModifierKeyOnly(event);
+  },
+});
+
+dragPanBtn.addEventListener("click", function () {
+  map.addInteraction(dragPan);
+});
+
 // Adding controls in a variable
 const mapControls = [
   attributionControl,
-  zoomExtend,
   fullScreenControl,
   zoomSlider,
   mousePositionControl,
   scaleLineControl,
   overViewMap,
   rotate,
+  dragPan,
 ];
 
 // Bing Maps Basemap Layer
@@ -345,7 +379,6 @@ const baseLayerGroup = new LayerGroup({
     "Këto shtresa shtresat bazë të hartës të cilat mund të aktivizohen veç e veç",
   displayInLayerSwitcher: true,
 });
-
 const asigLayers = new LayerGroup({
   layers: [
     albBorders,
@@ -443,11 +476,13 @@ geoSearch.on("select", function (event) {
   // Set the map view to the specified center coordinates and zoom level
   map.getView().setCenter(selectedResultCoordinates);
   map.getView().setZoom(12);
+  calculateScale();
+
   geoSearch.clearHistory();
 });
 
 //________________________________________________________________________________________________________
-//Show graticule
+//Show/Hide graticule
 const toggleButton = document.getElementById("graticuleButton");
 
 let graticule; // Declare the graticule variable outside the click event listener
@@ -508,6 +543,7 @@ function startGeolocationTracking() {
     map.getView().setZoom(18);
 
     currentPositionFeature.setGeometry(new Point(currentPosition));
+    calculateScale();
   });
 
   // Trigger the geolocation to start tracking
@@ -752,6 +788,8 @@ let drawPoly;
 const drawnLineSource = new VectorSource();
 measureLine.addEventListener("click", function () {
   map.removeInteraction(drawPoly);
+  map.removeOverlay(popup);
+
   drawnPolygonSource.clear();
   const drawType = "LineString";
   const activeTip =
@@ -797,11 +835,10 @@ const drawnLineLayer = new VectorLayer({
 map.addLayer(drawnLineLayer);
 
 //Measure Polygon
-
 const drawnPolygonSource = new VectorSource();
-
 measurePolygon.addEventListener("click", function () {
   map.removeInteraction(drawLine);
+  map.removeOverlay(popup);
   drawnLineSource.clear();
   const drawType = "Polygon";
   const activeTip =
@@ -856,10 +893,34 @@ map.addLayer(drawnPolygonLayer);
 
 //__________________________________________________________________________________________
 // Create the LayerSwitcherImage control
+//Switching layers on/off regarding to LayerGroup status
+const onChangeCheck = function (evt) {
+  const layer = evt;
+
+  const baseLayer = layer.get("title") === "Base Layers";
+  try {
+    const layers = evt.getLayers().getArray();
+    layers.forEach((subLayer) => {
+      console.log();
+      if (
+        layer instanceof LayerGroup &&
+        layer.values_.visible === true &&
+        !baseLayer
+      ) {
+        subLayer.setVisible(true);
+      } else {
+        subLayer.setVisible(false);
+      }
+    });
+  } catch (error) {}
+};
+
 const layerSwitcher = new LayerSwitcher({
+  className: "side-panel",
   displayInLayerSwitcher: displayInLayerSwitcher,
   trash: true,
-  show_progress: true,
+  onchangeCheck: onChangeCheck,
+  show_proress: true,
   mouseover: true,
   collapsed: false,
   extent: false,
@@ -886,6 +947,11 @@ layerSwitcherElement.style.position = "absolute";
 layerSwitcherElement.style.top = "50px";
 layerSwitcherElement.style.right = "10px";
 
+// Listen to the "visible" event of the LayerSwitcher
+layerSwitcher.on("change:visible", (event) => {
+  console.log(event);
+});
+
 //_____________________________________________________________________________________________
 // Create an overlay for the popup
 
@@ -901,7 +967,12 @@ map.addOverlay(popup);
 
 const getInfoBtn = document.getElementById("identify");
 
-getInfoBtn.addEventListener("click", function () {
+getInfoBtn.addEventListener("click", getInfo);
+function getInfo() {
+  map.removeInteraction(drawLine);
+  map.removeInteraction(drawPoly);
+  map.addOverlay(popup);
+
   map.on("click", (event) => {
     // Check if the layer is visible
     if (!municipalitiesLocal.getVisible()) {
@@ -986,7 +1057,7 @@ getInfoBtn.addEventListener("click", function () {
         });
     }
   });
-});
+}
 // Close the popup when clicking outside of it
 map.on("click", function (event) {
   var element = popup.getElement();
@@ -995,3 +1066,189 @@ map.on("click", function (event) {
     element.style.display = "none";
   }
 });
+
+//MORE RIGHT/LEFT BUTTONS
+const rightBtn = document.getElementById("move-right");
+const leftBtn = document.getElementById("move-left");
+
+function moveButton(value1, value2, value3) {
+  const currentCenter = map.getView().getCenter();
+
+  if (map.getView().getZoom() < 5) {
+    // Calculate the new center by moving 1000 meters to the right (east)
+    const newCenter = [currentCenter[0] + value1, currentCenter[1]];
+    // Set the new center to the map view
+    map.getView().setCenter(newCenter);
+  } else if (map.getView().getZoom() >= 5 && map.getView().getZoom() < 10) {
+    // Calculate the new center by moving 1000 meters to the right (east)
+    const newCenter = [currentCenter[0] + value2, currentCenter[1]];
+    // Set the new center to the map view
+    map.getView().setCenter(newCenter);
+  } else if (map.getView().getZoom() >= 10) {
+    // Calculate the new center by moving 1000 meters to the right (east)
+    const newCenter = [currentCenter[0] + value3, currentCenter[1]];
+    // Set the new center to the map view
+    map.getView().setCenter(newCenter);
+  }
+}
+
+rightBtn.addEventListener("click", function () {
+  moveButton(100000, 10000, 100);
+});
+
+leftBtn.addEventListener("click", function () {
+  moveButton(-100000, -10000, -100);
+});
+
+//ZOOM-IN/OUT BUTTONS
+const zoomInBtn = document.getElementById("zoom-in");
+const zoomOutBtn = document.getElementById("zoom-out");
+
+function zoomFunc(value) {
+  const view = map.getView();
+  const currentZoom = view.getZoom();
+  const newZoom = currentZoom + value;
+  view.setZoom(newZoom);
+  calculateScale();
+}
+
+zoomInBtn.addEventListener("click", function () {
+  zoomFunc(1);
+});
+zoomOutBtn.addEventListener("click", function () {
+  zoomFunc(-1);
+});
+
+//GET XY COORDINATES
+const getXYCoordsBtn = document.getElementById("coords");
+const coordsModal = document.getElementById("myModal");
+const closeModal = document.getElementsByClassName("close")[0];
+
+function decimalToDMS(decimal) {
+  const degrees = Math.floor(decimal);
+  const minutesDecimal = (decimal - degrees) * 60;
+  const minutes = Math.floor(minutesDecimal);
+  const seconds = (minutesDecimal - minutes) * 60;
+  return degrees + "° " + minutes + "' " + seconds.toFixed(2) + "''";
+}
+
+function getXY() {
+  map.on("click", function (event) {
+    const krgjshCoords = event.coordinate;
+    // Convert the clicked coordinate to the desired projection (e.g., EPSG:4326)
+    const wgs84 = "EPSG:4326";
+    const utm34N = "EPSG:32634";
+
+    const transformedCoordinate = transform(
+      krgjshCoords,
+      map.getView().getProjection(),
+      wgs84
+    );
+    const latitudeDMS = decimalToDMS(transformedCoordinate[0]);
+    const longitudeDMS = decimalToDMS(transformedCoordinate[1]);
+    const transformedCoordinate2 = transform(
+      krgjshCoords,
+      map.getView().getProjection(),
+      utm34N
+    );
+
+    document.getElementById("easting").textContent = krgjshCoords[0].toFixed(2);
+    document.getElementById("northing").textContent =
+      krgjshCoords[1].toFixed(2);
+    document.getElementById("easting1").textContent = latitudeDMS;
+    document.getElementById("northing1").textContent = longitudeDMS;
+    document.getElementById("easting2").textContent =
+      transformedCoordinate2[0].toFixed(2);
+    document.getElementById("northing2").textContent =
+      transformedCoordinate2[1].toFixed(2);
+    // Show the modal
+    coordsModal.style.display = "block";
+  });
+}
+
+closeModal.addEventListener("click", function () {
+  coordsModal.style.display = "none";
+});
+
+// When the user clicks anywhere outside of the modal, close it
+window.onclick = function (event) {
+  if (event.target == coordsModal) {
+    coordsModal.style.display = "none";
+  }
+};
+getXYCoordsBtn.addEventListener("click", function () {
+  getXY();
+});
+
+// Function to calculate and log the scale
+function calculateScale() {
+  // Get the map's view
+  const view = map.getView();
+  // Get the resolution of the view (units per pixel)
+  const resolution = view.getResolution();
+
+  // Get the units used in the map (e.g., meters, feet)
+  const units = view.getProjection().getUnits();
+
+  // Define the number of inches per unit based on your map's projection
+  const inchesPerUnit = {
+    m: 39.37007874, // Inches per meter
+    ft: 12, // Inches per foot
+    // Add more conversions as needed for other units
+  };
+
+  // Get the dots per inch of your display (e.g., standard is 96 dpi)
+  const dpi = 96;
+
+  // Calculate the scale
+  const scale = resolution * inchesPerUnit[units] * dpi;
+  // Update the input value with the calculated scale
+  const scaleInput = document.getElementById("scaleInput");
+  scaleInput.value = "1:" + scale.toFixed(0);
+}
+
+// Function to set the map scale based on user input
+function setMapScale() {
+  const inputElement = document.getElementById("scaleInput");
+  const scaleValue = inputElement.value.trim();
+
+  // Check if the scaleValue has the correct format "1:xxxxx"
+  const scaleRegex = /^1:(\d+)$/;
+  const scaleMatch = scaleValue.match(scaleRegex);
+
+  if (scaleMatch) {
+    const scaleNumber = parseInt(scaleMatch[1]);
+
+    // Calculate the resolution using the inverse of the formula in calculateScale()
+    const view = map.getView();
+    const units = view.getProjection().getUnits();
+    const inchesPerUnit = {
+      m: 39.3701, // Inches per meter
+      ft: 12, // Inches per foot
+      // Add more conversions as needed for other units
+    };
+    const dpi = 96;
+    const resolution = scaleNumber / (inchesPerUnit[units] * dpi);
+
+    // Set the calculated resolution to the map view
+    view.setResolution(resolution);
+  } else {
+    console.error("Invalid scale format. Please use the format '1:xxxxx'.");
+  }
+}
+
+// Add event listener to the input field to set the map scale
+const inputElement = document.getElementById("scaleInput");
+inputElement.addEventListener("keyup", function (event) {
+  if (event.key === "Enter") {
+    setMapScale();
+  }
+});
+
+// Add event listener to the map view to update scale on change
+const view = map.getView();
+view.on("change", function () {
+  calculateScale(); // Call the calculateScale() function to update the scale input
+});
+
+calculateScale();

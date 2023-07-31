@@ -21,6 +21,28 @@
           <button class="fa-button" id="identify" title="Get Information">
             <i class="fa-solid fa-circle-info"></i>
           </button>
+          <button class="fa-button" id="move-right" title="Move Right">
+            <i class="fa-solid fa-circle-right"></i>
+          </button>
+          <button class="fa-button" id="move-left" title="Move Left">
+            <i class="fa-solid fa-circle-left"></i>
+          </button>
+          <button class="fa-button" id="zoom-out" title="Zoom Out">
+            <i class="fa-solid fa-magnifying-glass-minus"></i>
+          </button>
+          <input type="text" id="scaleInput" />
+          <button class="fa-button" id="zoom-in" title="Zoom In">
+            <i class="fa-solid fa-magnifying-glass-plus"></i>
+          </button>
+          <button class="fa-button" id="coords" title="XY Coordinates">
+            <i class="fa-solid fa-thumbtack"></i>
+          </button>
+          <button class="fa-button" id="pan" title="DragPan">
+            <i class="fa-regular fa-hand"></i>
+          </button>
+          <button class="fa-button" id="zoom-extent" title="Zoom Extent">
+            <i class="fa-solid fa-globe"></i>
+          </button>
           <button class="fa-button" id="graticuleButton" title="Show/Hide Grid">
             <i class="fa-solid fa-table-cells-large"></i>
           </button>
@@ -43,11 +65,42 @@
           <input type="checkbox" id="clear" checked />
         </div>
       </div>
+      <div class="side-panel"></div>
       <div id="map"></div>
     </div>
     <div id="popup" class="ol-popup">
       <a href="#" id="popup-closer" class="ol-popup-closer"></a>
       <div id="popup-content"></div>
+    </div>
+    <!-- Modal -->
+    <div id="myModal" class="modal">
+      <!-- Modal content -->
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <p>Koordinatat</p>
+        <table style="width: 100%">
+          <tr>
+            <th>Coordinate System</th>
+            <th>Easting</th>
+            <th>Northing</th>
+          </tr>
+          <tr>
+            <td id="coordinateSystem">KRGJSH 2010 / TM λ=20 o</td>
+            <td id="easting"></td>
+            <td id="northing"></td>
+          </tr>
+          <tr>
+            <td id="coordinateSystem">WGS84</td>
+            <td id="easting1"></td>
+            <td id="northing1"></td>
+          </tr>
+          <tr>
+            <td id="coordinateSystem">UTM Zone 34N</td>
+            <td id="easting2"></td>
+            <td id="northing2"></td>
+          </tr>
+        </table>
+      </div>
     </div>
     <script type="module" src="./main.js"></script>
   </body>
