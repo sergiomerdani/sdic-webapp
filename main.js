@@ -47,6 +47,7 @@ import Geolocation from "ol/Geolocation.js";
 import Popup from "ol-ext/overlay/Popup";
 import Select from "ol/interaction/Select";
 import { DragPan } from "ol/interaction";
+import Overview from "ol-ext/control/Overview";
 
 proj4.defs(
   "EPSG:6870",
@@ -170,7 +171,7 @@ const mapControls = [
   zoomSlider,
   mousePositionControl,
   scaleLineControl,
-  overViewMap,
+  // overViewMap,
   rotate,
   dragPan,
 ];
@@ -282,7 +283,7 @@ const municipalitiesLocal = new Tile({
       VERSION: "1.1.0",
     },
   }),
-  visible: true,
+  visible: false,
   title: "Bashkite Local",
   information: "Kufiri i tokësor i republikës së Shqipërisë",
   displayInLayerSwitcher: true,
@@ -952,6 +953,15 @@ layerSwitcher.on("change:visible", (event) => {
   console.log(event);
 });
 
+// Get the reference to the layerSwitcherContainer div
+const sideBar = document.querySelector(".side-panel");
+// Get the reference to the layerSwitcherContainer div
+const layerSwitcherContainer = document.getElementById(
+  "layerSwitcherContainer"
+);
+console.log(layerSwitcherElement);
+// Append the LayerSwitcher control to the layerSwitcherContainer div
+// layerSwitcherContainer.appendChild(layerSwitcher);
 //_____________________________________________________________________________________________
 // Create an overlay for the popup
 
@@ -1223,9 +1233,8 @@ function setMapScale() {
     const view = map.getView();
     const units = view.getProjection().getUnits();
     const inchesPerUnit = {
-      m: 39.3701, // Inches per meter
-      ft: 12, // Inches per foot
-      // Add more conversions as needed for other units
+      m: 39.3701,
+      ft: 12,
     };
     const dpi = 96;
     const resolution = scaleNumber / (inchesPerUnit[units] * dpi);
@@ -1252,3 +1261,8 @@ view.on("change", function () {
 });
 
 calculateScale();
+
+//Overview from ol-ext
+const overView = new Overview();
+
+map.addControl(overView);
