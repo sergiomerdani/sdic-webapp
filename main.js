@@ -11,7 +11,6 @@ import TileWMS from "ol/source/TileWMS.js";
 import {
   Attribution,
   defaults,
-  ZoomToExtent,
   FullScreen,
   ZoomSlider,
   MousePosition,
@@ -47,7 +46,6 @@ import Geolocation from "ol/Geolocation.js";
 import Popup from "ol-ext/overlay/Popup";
 import Select from "ol/interaction/Select";
 import { DragPan } from "ol/interaction";
-import Overview from "ol-ext/control/Overview";
 
 proj4.defs(
   "EPSG:6870",
@@ -61,6 +59,7 @@ proj4.defs(
 );
 
 register(proj4);
+
 const krgjshProjection = new Projection({
   code: "EPSG:6870",
   extent: [-2963585.56, 3639475.76, 2404277.44, 9525908.77],
@@ -95,7 +94,7 @@ const fullScreenControl = new FullScreen({
 });
 
 //Zoom Slider
-const zoomSlider = new ZoomSlider();
+// const zoomSlider = new ZoomSlider();
 
 //MousePosition Coordinates
 const mousePositionControl = new MousePosition({
@@ -116,36 +115,36 @@ const scaleLineControl = new ScaleLine({
 });
 
 //OverView Map Control
-const overViewMap = new OverviewMap({
-  collapsed: false,
-  collapsible: true,
-  rotateWithView: true,
-  view: new View({
-    center: krgjshCenter,
-    zoom: 16,
-    projection: "EPSG:6870",
-  }),
-  layers: [
-    new Tile({
-      source: new OSM(),
-    }),
-  ],
-});
+// const overViewMap = new OverviewMap({
+//   collapsed: false,
+//   collapsible: true,
+//   rotateWithView: true,
+//   view: new View({
+//     center: krgjshCenter,
+//     zoom: 16,
+//     projection: "EPSG:6870",
+//   }),
+//   layers: [
+//     new Tile({
+//       source: new OSM(),
+//     }),
+//   ],
+// });
 
 // Create a container element for the static content
-const staticContent = document.createElement("div");
-staticContent.innerHTML = "Overview Map";
+// const staticContent = document.createElement("div");
+// staticContent.innerHTML = "Overview Map";
 
-// Style the container element with CSS
-staticContent.style.position = "absolute";
-staticContent.style.top = "10px";
-staticContent.style.left = "25px";
-staticContent.style.color = "Black";
-staticContent.style.fontSize = "16px";
-staticContent.style.backgroundColor = "white";
+// // Style the container element with CSS
+// staticContent.style.position = "absolute";
+// staticContent.style.top = "10px";
+// staticContent.style.left = "25px";
+// staticContent.style.color = "Black";
+// staticContent.style.fontSize = "16px";
+// staticContent.style.backgroundColor = "white";
 
 // Add the container element to the map's overlay container
-overViewMap.getOverviewMap().getOverlayContainer().appendChild(staticContent);
+// overViewMap.getOverviewMap().getOverlayContainer().appendChild(staticContent);
 
 //Rotate COntrol
 const rotate = new Rotate();
@@ -168,7 +167,7 @@ dragPanBtn.addEventListener("click", function () {
 const mapControls = [
   attributionControl,
   fullScreenControl,
-  zoomSlider,
+  // zoomSlider,
   mousePositionControl,
   scaleLineControl,
   // overViewMap,
@@ -283,8 +282,21 @@ const municipalitiesLocal = new Tile({
       VERSION: "1.1.0",
     },
   }),
-  visible: false,
+  visible: true,
   title: "Bashkite Local",
+  information: "Kufiri i tokësor i republikës së Shqipërisë",
+  displayInLayerSwitcher: true,
+});
+const zonaA = new Tile({
+  source: new TileWMS({
+    url: "http://localhost:8080/geoserver/my_workspace1/wms",
+    params: {
+      LAYERS: "my_workspace1:Zona_A",
+      VERSION: "1.1.0",
+    },
+  }),
+  visible: true,
+  title: "Zona A",
   information: "Kufiri i tokësor i republikës së Shqipërisë",
   displayInLayerSwitcher: true,
 });
@@ -403,7 +415,7 @@ const addressSystem = new LayerGroup({
 });
 
 const localData = new LayerGroup({
-  layers: [municipalitiesLocal],
+  layers: [municipalitiesLocal, zonaA],
   title: "Local Data",
   displayInLayerSwitcher: true,
 });
@@ -434,6 +446,7 @@ map.addInteraction(dragRotateInteraction);
 const geoSearch = new SearchNominatim({
   placeholder: "Kërko qytet/fshat...",
   collapsed: false,
+  collapsible: false,
   url: "https://nominatim.openstreetmap.org/search?format=json&q={s}",
 });
 
@@ -789,7 +802,6 @@ let drawPoly;
 const drawnLineSource = new VectorSource();
 measureLine.addEventListener("click", function () {
   map.removeInteraction(drawPoly);
-  map.removeOverlay(popup);
 
   drawnPolygonSource.clear();
   const drawType = "LineString";
@@ -839,7 +851,7 @@ map.addLayer(drawnLineLayer);
 const drawnPolygonSource = new VectorSource();
 measurePolygon.addEventListener("click", function () {
   map.removeInteraction(drawLine);
-  map.removeOverlay(popup);
+
   drawnLineSource.clear();
   const drawType = "Polygon";
   const activeTip =
@@ -917,7 +929,6 @@ const onChangeCheck = function (evt) {
 };
 
 const layerSwitcher = new LayerSwitcher({
-  className: "side-panel",
   displayInLayerSwitcher: displayInLayerSwitcher,
   trash: true,
   onchangeCheck: onChangeCheck,
@@ -948,133 +959,109 @@ layerSwitcherElement.style.position = "absolute";
 layerSwitcherElement.style.top = "50px";
 layerSwitcherElement.style.right = "10px";
 
-// Listen to the "visible" event of the LayerSwitcher
-layerSwitcher.on("change:visible", (event) => {
-  console.log(event);
-});
-
-// Get the reference to the layerSwitcherContainer div
-const sideBar = document.querySelector(".side-panel");
-// Get the reference to the layerSwitcherContainer div
-const layerSwitcherContainer = document.getElementById(
-  "layerSwitcherContainer"
-);
-console.log(layerSwitcherElement);
-// Append the LayerSwitcher control to the layerSwitcherContainer div
-// layerSwitcherContainer.appendChild(layerSwitcher);
 //_____________________________________________________________________________________________
-// Create an overlay for the popup
-
-// Create an overlay for the popup
-var popup = new Overlay({
-  element: document.getElementById("popup"), // Replace 'popup' with the ID of your popup element
-  positioning: "bottom-center",
-  stopEvent: false,
-  offset: [0, -10],
-});
-
-map.addOverlay(popup);
-
+// Display data from WMS Layer
 const getInfoBtn = document.getElementById("identify");
 
-getInfoBtn.addEventListener("click", getInfo);
-function getInfo() {
-  map.removeInteraction(drawLine);
-  map.removeInteraction(drawPoly);
-  map.addOverlay(popup);
+function getInfo(event) {
+  // Get the clicked coordinate
+  const pixel = event.pixel;
+  var coordinate = map.getCoordinateFromPixel(pixel);
 
-  map.on("click", (event) => {
-    // Check if the layer is visible
+  // Get all visible layers
+  const visibleLayers = map
+    .getLayers()
+    .getArray()
+    .filter((layer) => layer.getVisible());
+
+  // Send a request to the server to get the feature information
+  const url = municipalitiesLocal
+    .getSource()
+    .getFeatureInfoUrl(
+      coordinate,
+      map.getView().getResolution(),
+      map.getView().getProjection(),
+      { INFO_FORMAT: "application/json" }
+    );
+
+  if (url) {
+    fetch(url)
+      .then(function (response) {
+        return response.json();
+      })
+      .then(function (data) {
+        var features = data.features;
+
+        if (features.length > 0) {
+          // Assuming only one feature is clicked, as per your requirement
+          var properties = features[0].properties;
+
+          // Specify the properties you want to display
+          var displayProperties = ["financim", "lot", "statusi"];
+
+          // Create the form container
+          var formContainer = document.createElement("div");
+          formContainer.classList.add("form-container");
+          // Add the header with its value to the form container
+          var headerProperty = "emri";
+          var headerElement = document.createElement("div");
+          headerElement.classList.add("form-header");
+          headerElement.textContent = properties[headerProperty];
+          formContainer.appendChild(headerElement);
+
+          // Add a line (horizontal rule) below the header
+          var hrElement = document.createElement("hr");
+          formContainer.appendChild(hrElement);
+
+          // Iterate over the properties and add them to the form
+          displayProperties.forEach(function (prop) {
+            if (properties.hasOwnProperty(prop)) {
+              var labelElement = document.createElement("label");
+              labelElement.textContent = prop;
+              var inputElement = document.createElement("input");
+              inputElement.setAttribute("readonly", "readonly");
+              inputElement.value = properties[prop];
+              // Add the label and input elements to the form container
+              formContainer.appendChild(labelElement);
+              formContainer.appendChild(inputElement);
+
+              // Add a <br> element after the input element
+              // var brElement = document.createElement("br");
+              // formContainer.appendChild(brElement);
+            }
+          });
+
+          var existingFormContainer = document.querySelector(".form-container");
+          existingFormContainer.innerHTML = "";
+          existingFormContainer.appendChild(formContainer);
+        }
+      })
+      .catch(function (error) {
+        console.error("Error:", error);
+      });
+  }
+}
+getInfoBtn.addEventListener("click", function () {
+  map.on("click", function (event) {
     if (!municipalitiesLocal.getVisible()) {
       return;
     }
-    // Get the clicked coordinate
-    const clickedCoordinate = event.coordinate;
-    const pixel = event.pixel;
-
-    // Transform the pixel coordinate to map coordinates
-    var coordinate = map.getCoordinateFromPixel(pixel);
-
-    const url = municipalitiesLocal
-      .getSource()
-      .getFeatureInfoUrl(
-        coordinate,
-        map.getView().getResolution(),
-        map.getView().getProjection(),
-        { INFO_FORMAT: "application/json" }
-      );
-
-    if (url) {
-      // Send a request to the server to get the feature information
-      fetch(url)
-        .then(function (response) {
-          return response.json();
-        })
-        .then(function (data) {
-          // Process the feature information
-          var features = data.features;
-          if (features.length > 0) {
-            // Extract properties or perform custom logic with the feature information
-            features.forEach(function (feature) {
-              var properties = feature.properties;
-
-              // Specify the properties you want to display
-              var displayProperties = ["statusi", "lot", "statusi"];
-
-              // Create HTML content for the popup
-              var content = "<div>";
-              var headerProperty = "emri";
-
-              // Create HTML content for the popup
-              var content = "<div class='popup-container'>";
-
-              // Add the header with its value to the content
-              content +=
-                "<div class='popup-header'>" +
-                properties[headerProperty] +
-                "</div>";
-              // Add a line (horizontal rule) below the header
-              content += "<hr>";
-              // Iterate over the properties and add them to the content
-              displayProperties.forEach(function (prop) {
-                if (properties.hasOwnProperty(prop)) {
-                  content +=
-                    "<strong>" +
-                    prop +
-                    ": </strong>" +
-                    properties[prop] +
-                    "<br>";
-                }
-              });
-              // if (properties["lot"] === 6) {
-              //   // Add the image to the content
-              //   content +=
-              //     "<img src='./images/SR-01.jpg' style='max-width: 100%; max-height: 150px;'>";
-              //   content += "</div>";
-              // }
-
-              // Set the popup content and position
-              popup.setPosition(coordinate);
-              popup.getElement().innerHTML = content;
-
-              // Display the popup
-              popup.getElement().style.display = "block";
-            });
-          }
-        })
-        .catch(function (error) {
-          console.error("Error:", error);
-        });
-    }
+    getInfo(event);
+    const hitTolerance = 10; // Set the hit-detection tolerance in pixels
+    const options = {
+      hitTolerance: hitTolerance,
+      layerFilter: function (layer) {
+        // Layer filter function to include only visible layers
+        return layer.getVisible();
+      },
+      checkWrapped: true, // Check for wrapped geometries
+    };
+    const features = map.getFeaturesAtPixel(event.pixel, options);
+    // Assuming you have the form container element
+    const formContainer = document.querySelector(".form-container");
+    // Set the display property to "block" to show the form
+    formContainer.style.display = "block";
   });
-}
-// Close the popup when clicking outside of it
-map.on("click", function (event) {
-  var element = popup.getElement();
-  var hit = map.hasFeatureAtPixel(event.pixel);
-  if (!hit) {
-    element.style.display = "none";
-  }
 });
 
 //MORE RIGHT/LEFT BUTTONS
@@ -1261,8 +1248,3 @@ view.on("change", function () {
 });
 
 calculateScale();
-
-//Overview from ol-ext
-const overView = new Overview();
-
-map.addControl(overView);
