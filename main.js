@@ -974,48 +974,52 @@ function getInfo(event) {
     .getArray()
     .filter((layer) => layer.getVisible());
 
-  // Send a request to the server to get the feature information
-  const url = municipalitiesLocal
-    .getSource()
-    .getFeatureInfoUrl(
-      coordinate,
-      map.getView().getResolution(),
-      map.getView().getProjection(),
-      { INFO_FORMAT: "application/json" }
-    );
+  const maxPropertiesToShow = 5;
 
-  if (url) {
-    fetch(url)
-      .then(function (response) {
-        return response.json();
-      })
-      .then(function (data) {
-        var features = data.features;
+  visibleLayers.forEach((layer) => {
+    // Send a request to the server to get the feature information
+    const url = municipalitiesLocal
+      .getSource()
+      .getFeatureInfoUrl(
+        coordinate,
+        map.getView().getResolution(),
+        map.getView().getProjection(),
+        { INFO_FORMAT: "application/json" }
+      );
 
-        if (features.length > 0) {
-          // Assuming only one feature is clicked, as per your requirement
-          var properties = features[0].properties;
+    if (url) {
+      fetch(url)
+        .then(function (response) {
+          return response.json();
+        })
+        .then(function (data) {
+          var features = data.features;
 
-          // Specify the properties you want to display
-          var displayProperties = ["financim", "lot", "statusi"];
+          features.forEach((feature) => {
+            var properties = feature.properties;
 
-          // Create the form container
-          var formContainer = document.createElement("div");
-          formContainer.classList.add("form-container");
-          // Add the header with its value to the form container
-          var headerProperty = "emri";
-          var headerElement = document.createElement("div");
-          headerElement.classList.add("form-header");
-          headerElement.textContent = properties[headerProperty];
-          formContainer.appendChild(headerElement);
+            // Create the form container
+            var formContainer = document.createElement("div");
+            formContainer.classList.add("form-container");
+            // Add the header with its value to the form container
+            var headerProperty = "emri";
+            var headerElement = document.createElement("div");
+            headerElement.classList.add("form-header");
+            headerElement.textContent = properties[headerProperty];
+            formContainer.appendChild(headerElement);
 
-          // Add a line (horizontal rule) below the header
-          var hrElement = document.createElement("hr");
-          formContainer.appendChild(hrElement);
+            // Add a line (horizontal rule) below the header
+            var hrElement = document.createElement("hr");
+            formContainer.appendChild(hrElement);
 
-          // Iterate over the properties and add them to the form
-          displayProperties.forEach(function (prop) {
-            if (properties.hasOwnProperty(prop)) {
+            // Limit the number of properties to show
+            var propertiesToShow = Object.keys(properties).slice(
+              0,
+              maxPropertiesToShow
+            );
+
+            // Iterate over the properties and add them to the form
+            propertiesToShow.forEach(function (prop) {
               var labelElement = document.createElement("label");
               labelElement.textContent = prop;
               var inputElement = document.createElement("input");
@@ -1028,24 +1032,25 @@ function getInfo(event) {
               // Add a <br> element after the input element
               // var brElement = document.createElement("br");
               // formContainer.appendChild(brElement);
-            }
-          });
+            });
 
-          var existingFormContainer = document.querySelector(".form-container");
-          existingFormContainer.innerHTML = "";
-          existingFormContainer.appendChild(formContainer);
-        }
-      })
-      .catch(function (error) {
-        console.error("Error:", error);
-      });
-  }
+            var existingFormContainer =
+              document.querySelector(".form-container");
+            existingFormContainer.innerHTML = "";
+            existingFormContainer.appendChild(formContainer);
+          });
+        })
+        .catch(function (error) {
+          console.error("Error:", error);
+        });
+    }
+  });
 }
 getInfoBtn.addEventListener("click", function () {
   map.on("click", function (event) {
-    if (!municipalitiesLocal.getVisible()) {
-      return;
-    }
+    // if (!municipalitiesLocal.getVisible()) {
+    //   return;
+    // }
     getInfo(event);
     const hitTolerance = 10; // Set the hit-detection tolerance in pixels
     const options = {
