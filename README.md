@@ -1,18 +1,33 @@
-# OpenLayers + Vite
+Installation Instructions
+To run this project, you need to install the following libraries:
 
-This example demonstrates how the `ol` package can be used with [Vite](https://vitejs.dev/).
+1. OpenLayers (ol)
 
-To get started, run the following (requires Node 14+):
+Website: https://openlayers.org/
+Installation:
 
-    npx create-ol-app my-app --template vite
+npm install ol
 
-Then change into your new `my-app` directory and start a development server (available at http://localhost:5173):
+2. OpenLayers Extensions (ol-ext)
 
-    cd my-app
-    npm start
+Website: https://github.com/Viglino/ol-ext
+Installation:
 
-To generate a build ready for production:
+npm install ol-ext
 
-    npm run build
+3. Proj4js (proj4)
 
-Then deploy the contents of the `dist` directory to your server.  You can also run `npm run serve` to serve the results of the `dist` directory for preview.
+Website: https://proj4js.org/
+Installation:
+
+npm install proj4
+
+
+Additional Notes:
+
+4. Make sure you have Node.js and npm (Node Package Manager) installed on your system before running the installation commands.
+Installation:
+
+npm install 
+
+These libraries are essential for the proper functioning of the project. Ensure they are installed and up-to-date to avoid any compatibility issues.
