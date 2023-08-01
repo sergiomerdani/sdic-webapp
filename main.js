@@ -961,6 +961,7 @@ layerSwitcherElement.style.right = "10px";
 
 //_____________________________________________________________________________________________
 // Display data from WMS Layer
+
 const getInfoBtn = document.getElementById("identify");
 
 function getInfo(event) {
@@ -968,17 +969,22 @@ function getInfo(event) {
   const pixel = event.pixel;
   var coordinate = map.getCoordinateFromPixel(pixel);
 
-  // Get all visible layers
-  const visibleLayers = map
-    .getLayers()
-    .getArray()
-    .filter((layer) => layer.getVisible());
+  // Function to read visible layers in the "Local Data" group
+
+  // Get the layers of the "Local Data" layer group
+  const layers = localData.getLayers().getArray();
+
+  // Return an array of visible layers
+  const visibleLayers = layers.filter((layer) => layer.getVisible());
 
   const maxPropertiesToShow = 5;
 
+  // Get visible layers in the "Local Data" layer group
+
+  // Process feature information for each visible layer in the "Local Data" group
   visibleLayers.forEach((layer) => {
     // Send a request to the server to get the feature information
-    const url = municipalitiesLocal
+    const url = layer
       .getSource()
       .getFeatureInfoUrl(
         coordinate,
@@ -1028,15 +1034,13 @@ function getInfo(event) {
               // Add the label and input elements to the form container
               formContainer.appendChild(labelElement);
               formContainer.appendChild(inputElement);
-
-              // Add a <br> element after the input element
-              // var brElement = document.createElement("br");
-              // formContainer.appendChild(brElement);
             });
 
-            var existingFormContainer =
+            // Clear the existing form container before appending new data
+            const existingFormContainer =
               document.querySelector(".form-container");
             existingFormContainer.innerHTML = "";
+            // Append the form container to the existing container
             existingFormContainer.appendChild(formContainer);
           });
         })
@@ -1046,11 +1050,18 @@ function getInfo(event) {
     }
   });
 }
+
 getInfoBtn.addEventListener("click", function () {
   map.on("click", function (event) {
-    // if (!municipalitiesLocal.getVisible()) {
-    //   return;
-    // }
+    // Function to read visible layers in the "Local Data" group
+    // Get the layers of the "Local Data" layer group
+    const layers = localData.getLayers().getArray();
+
+    // Return an array of visible layers
+    const visibleLayers = layers.filter((layer) => layer.getVisible());
+    if (!visibleLayers) {
+      return;
+    }
     getInfo(event);
     const hitTolerance = 10; // Set the hit-detection tolerance in pixels
     const options = {
