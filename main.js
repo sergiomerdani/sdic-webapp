@@ -300,6 +300,35 @@ const zonaA = new Tile({
   information: "Kufiri i tokësor i republikës së Shqipërisë",
   displayInLayerSwitcher: true,
 });
+
+const layer888 = new Tile({
+  source: new TileWMS({
+    url: "http://localhost:8080/geoserver/my_workspace1/wms",
+    params: {
+      LAYERS: "my_workspace1:layer888_utm",
+      VERSION: "1.1.0",
+    },
+  }),
+  visible: true,
+  title: "Layer 888",
+  information: "Kufiri i tokësor i republikës së Shqipërisë",
+  displayInLayerSwitcher: true,
+});
+
+const testsym = new Tile({
+  source: new TileWMS({
+    url: "http://localhost:8080/geoserver/my_workspace1/wms",
+    params: {
+      LAYERS: "my_workspace1:test_sym",
+      VERSION: "1.1.0",
+    },
+  }),
+  visible: true,
+  title: "Test Sym",
+  information: "Kufiri i tokësor i republikës së Shqipërisë",
+  displayInLayerSwitcher: true,
+});
+
 const breziBregdetar = new Tile({
   source: new TileWMS({
     url: "http://localhost:8080/geoserver/my_workspace1/wms",
@@ -432,11 +461,16 @@ const localData = new LayerGroup({
   title: "Local Data",
   displayInLayerSwitcher: true,
 });
+const localData2 = new LayerGroup({
+  layers: [layer888, testsym],
+  title: "Local Data 2",
+  displayInLayerSwitcher: true,
+});
 
 const map = new Map({
   target: "map",
   controls: defaults({ attribution: false }).extend(mapControls),
-  layers: [baseLayerGroup, asigLayers, addressSystem, localData],
+  layers: [baseLayerGroup, asigLayers, addressSystem, localData, localData2],
   view: new View({
     projection: krgjshProjection,
     center: krgjshCenter,
@@ -1001,101 +1035,9 @@ function getInfo(event) {
     // Get the title of the layer if it exists, otherwise return an empty string
     return layer.get("title") || "";
   }
-  // Process feature information for the uppermost layer if there are multiple visible layers
-  if (visibleLayers.length > 1) {
-    const upperLayer = visibleLayers[0]; // Uppermost layer
 
-    // Send a request to the server to get the feature information for the uppermost layer
-    const urlUpper = upperLayer
-      .getSource()
-      .getFeatureInfoUrl(
-        coordinate,
-        map.getView().getResolution(),
-        map.getView().getProjection(),
-        { INFO_FORMAT: "application/json" }
-      );
-
-    if (urlUpper) {
-      fetch(urlUpper)
-        .then(function (response) {
-          return response.json();
-        })
-        .then(function (data) {
-          var features = data.features;
-
-          // Check if the upper layer has features in the clicked location
-          if (features && features.length > 0) {
-            // Clear the existing form container before appending new data
-            const existingFormContainer =
-              document.querySelector(".form-container");
-            existingFormContainer.innerHTML = "";
-
-            features.forEach((feature) => {
-              var properties = feature.properties;
-
-              // Create the form container
-              var formContainer = document.createElement("div");
-              formContainer.classList.add("form-container");
-              // Add the header with its value to the form container
-              // var headerProperty = "emri";
-              var headerElement = document.createElement("div");
-              headerElement.classList.add("form-header");
-              // headerElement.textContent = properties[headerProperty];
-              const layerTitle = getLayerTitle(upperLayer); // Get the title of the layer
-              if (layerTitle) {
-                headerElement.textContent += " - " + layerTitle; // Add the layer title to the header
-              }
-              formContainer.appendChild(headerElement);
-
-              // Add a line (horizontal rule) below the header
-              var hrElement = document.createElement("hr");
-              formContainer.appendChild(hrElement);
-
-              // Limit the number of properties to show
-              var propertiesToShow = Object.keys(properties).slice(
-                0,
-                maxPropertiesToShow
-              );
-
-              // Iterate over the properties and add them to the form
-              propertiesToShow.forEach(function (prop) {
-                var labelElement = document.createElement("label");
-                labelElement.textContent = prop;
-                var inputElement = document.createElement("input");
-                inputElement.setAttribute("readonly", "readonly");
-                inputElement.value = properties[prop];
-                // Add the label and input elements to the form container
-                formContainer.appendChild(labelElement);
-                formContainer.appendChild(inputElement);
-
-                // Add a <br> element after the input element
-                // var brElement = document.createElement("br");
-                // formContainer.appendChild(brElement);
-              });
-
-              // Append the form container to the existing container
-              existingFormContainer.appendChild(formContainer);
-            });
-
-            // Assuming you have the form container element
-            const formContainer = document.querySelector(".form-container");
-            // Set the display property to "block" to show the form
-            formContainer.style.display = "block";
-          } else {
-            // If the upper layer has no features, try getting data from the lower layer
-            const lowerLayer = visibleLayers[1]; // Lower layer
-            getLowerLayerData(lowerLayer);
-          }
-        })
-        .catch(function (error) {
-          console.error("Error:", error);
-        });
-    }
-  } else if (visibleLayers.length === 1) {
-    // If there's only one visible layer, process its feature information
-    const layer = visibleLayers[0]; // The only available layer
-
-    // Send a request to the server to get the feature information
+  // Helper function to get the features of a layer and show the form if features exist
+  function getLayerFeatures(layer) {
     const url = layer
       .getSource()
       .getFeatureInfoUrl(
@@ -1113,97 +1055,8 @@ function getInfo(event) {
         .then(function (data) {
           var features = data.features;
 
-          // Clear the existing form container before appending new data
-          const existingFormContainer =
-            document.querySelector(".form-container");
-          existingFormContainer.innerHTML = "";
-
-          features.forEach((feature) => {
-            var properties = feature.properties;
-
-            // Create the form container
-            var formContainer = document.createElement("div");
-            formContainer.classList.add("form-container");
-            // Add the header with its value to the form container
-            // var headerProperty = "emri";
-            var headerElement = document.createElement("div");
-            headerElement.classList.add("form-header");
-            // headerElement.textContent = properties[headerProperty];
-            const layerTitle = getLayerTitle(layer); // Get the title of the layer
-            if (layerTitle) {
-              headerElement.textContent += " - " + layerTitle; // Add the layer title to the header
-            }
-            formContainer.appendChild(headerElement);
-
-            // Add a line (horizontal rule) below the header
-            var hrElement = document.createElement("hr");
-            formContainer.appendChild(hrElement);
-
-            // Limit the number of properties to show
-            var propertiesToShow = Object.keys(properties).slice(
-              0,
-              maxPropertiesToShow
-            );
-
-            // Iterate over the properties and add them to the form
-            propertiesToShow.forEach(function (prop) {
-              var labelElement = document.createElement("label");
-              labelElement.textContent = prop;
-              var inputElement = document.createElement("input");
-              inputElement.setAttribute("readonly", "readonly");
-              inputElement.value = properties[prop];
-              // Add the label and input elements to the form container
-              formContainer.appendChild(labelElement);
-              formContainer.appendChild(inputElement);
-
-              // Add a <br> element after the input element
-              // var brElement = document.createElement("br");
-              // formContainer.appendChild(brElement);
-            });
-
-            // Append the form container to the existing container
-            existingFormContainer.appendChild(formContainer);
-          });
-
-          // Assuming you have the form container element
-          const formContainer = document.querySelector(".form-container");
-          // Set the display property to "block" to show the form
-          formContainer.style.display = "block";
-        })
-        .catch(function (error) {
-          console.error("Error:", error);
-        });
-    }
-  } else {
-    // If no layers are visible in the "Local Data" group, try getting data from the back layer
-    getBackLayerData();
-  }
-
-  // Function to get data from the lower layer
-  function getLowerLayerData(lowerLayer) {
-    // Send a request to the server to get the feature information for the lower layer
-    const urlLower = lowerLayer
-      .getSource()
-      .getFeatureInfoUrl(
-        coordinate,
-        map.getView().getResolution(),
-        map.getView().getProjection(),
-        { INFO_FORMAT: "application/json" }
-      );
-
-    if (urlLower) {
-      fetch(urlLower)
-        .then(function (response) {
-          return response.json();
-        })
-        .then(function (data) {
-          var features = data.features;
-
           if (features && features.length > 0) {
             // Clear the existing form container before appending new data
-            const existingFormContainer =
-              document.querySelector(".form-container");
-            existingFormContainer.innerHTML = "";
 
             features.forEach((feature) => {
               var properties = feature.properties;
@@ -1212,13 +1065,11 @@ function getInfo(event) {
               var formContainer = document.createElement("div");
               formContainer.classList.add("form-container");
               // Add the header with its value to the form container
-              // var headerProperty = "emri";
               var headerElement = document.createElement("div");
               headerElement.classList.add("form-header");
-              // headerElement.textContent = properties[headerProperty];
-              const layerTitle = getLayerTitle(lowerLayer); // Get the title of the layer
+              const layerTitle = getLayerTitle(layer); // Get the title of the layer
               if (layerTitle) {
-                headerElement.textContent += " - " + layerTitle; // Add the layer title to the header
+                headerElement.textContent = layerTitle; // Add the layer title to the header
               }
               formContainer.appendChild(headerElement);
 
@@ -1242,25 +1093,44 @@ function getInfo(event) {
                 // Add the label and input elements to the form container
                 formContainer.appendChild(labelElement);
                 formContainer.appendChild(inputElement);
+                var createBr = document.createElement("br");
+                formContainer.appendChild(createBr);
               });
 
+              const existingFormContainer =
+                document.querySelector(".form-container");
+              existingFormContainer.innerHTML = "";
               // Append the form container to the existing container
               existingFormContainer.appendChild(formContainer);
-            });
 
-            // Assuming you have the form container element
-            const formContainer = document.querySelector(".form-container");
-            // Set the display property to "block" to show the form
-            formContainer.style.display = "block";
+              // Show the form container
+              formContainer.style.display = "block";
+            });
           } else {
-            // If the lower layer also has no features, show a message or perform any other action
-            formContainer.style.display = "none";
+            // If the layer has no features, try the next layer
+            const nextLayerIndex = visibleLayers.indexOf(layer) + 1;
+            if (nextLayerIndex < visibleLayers.length) {
+              getLayerFeatures(visibleLayers[nextLayerIndex]);
+            } else {
+              // If no layers have features, show a message or hide the form container
+              const formContainer = document.querySelector(".form-container");
+              formContainer.style.display = "none";
+            }
           }
         })
         .catch(function (error) {
           console.error("Error:", error);
         });
     }
+  }
+
+  // Process feature information for the uppermost layer if there are multiple visible layers
+  if (visibleLayers.length > 0) {
+    // Start by checking the uppermost layer for features
+    getLayerFeatures(visibleLayers[0]);
+  } else {
+    // If no layers are visible in the "Local Data" group, try getting data from the back layer
+    // getBackLayerData();
   }
 }
 

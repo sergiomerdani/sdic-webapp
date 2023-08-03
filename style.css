@@ -95,13 +95,14 @@ header {
   padding: 10px;
   position: fixed;
   top: 200px;
-  right: 50px;
+  left: 1100px;
+  right: 20px;
   width: auto;
   height: auto;
   background-color: #fff;
   z-index: 1000;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 8px;
 }
 
