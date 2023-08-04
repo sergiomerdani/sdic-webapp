@@ -46,6 +46,7 @@ import Geolocation from "ol/Geolocation.js";
 import Popup from "ol-ext/overlay/Popup";
 import Select from "ol/interaction/Select";
 import { DragPan } from "ol/interaction";
+import PrintDialog from "ol-ext/control/PrintDialog";
 
 proj4.defs(
   "EPSG:6870",
@@ -209,8 +210,8 @@ const cartoDBBaseLayer = new TileLayer({
 
 const orthoPhoto = new Tile({
   source: new TileWMS({
-    url: "http://localhost:8080/geoserver/my_workspace1/wms",
-    params: { LAYERS: "my_workspace1:OrthoImagery_20cm" },
+    url: "https://geoportal.asig.gov.al/service/wmts?request=GetCapabilities",
+    params: { LAYERS: "orthophoto_2015:OrthoImagery_20cm" },
   }),
 
   visible: false,
@@ -230,7 +231,7 @@ const albBorders = new Tile({
       VERSION: "1.1.0",
     },
   }),
-  visible: true,
+  visible: false,
   title: "Kufi Shteteror",
   information: "Kufiri i tokësor i republikës së Shqipërisë",
   displayInLayerSwitcher: true,
@@ -274,71 +275,132 @@ const country = new Style({
   }),
 });
 
-const municipalitiesLocal = new Tile({
+//SHKSH LAYERS
+const shkshInstitucionet = new Tile({
   source: new TileWMS({
-    url: "http://localhost:8080/geoserver/my_workspace1/wms",
+    url: "http://192.168.2.177:8080/geoserver/shksh/wms",
     params: {
-      LAYERS: "my_workspace1:adm_boundary",
+      LAYERS: "shksh:SHKSH_Institucionet",
       VERSION: "1.1.0",
     },
   }),
-  visible: true,
-  title: "Bashkite Local",
-  information: "Kufiri i tokësor i republikës së Shqipërisë",
-  displayInLayerSwitcher: true,
-});
-const zonaA = new Tile({
-  source: new TileWMS({
-    url: "http://localhost:8080/geoserver/my_workspace1/wms",
-    params: {
-      LAYERS: "my_workspace1:Zona_A",
-      VERSION: "1.1.0",
-    },
-  }),
-  visible: true,
-  title: "Zona A",
+  visible: false,
+  title: "SHKSH Institucionet",
   information: "Kufiri i tokësor i republikës së Shqipërisë",
   displayInLayerSwitcher: true,
 });
 
-const layer888 = new Tile({
+const shkshSherbimet = new Tile({
   source: new TileWMS({
-    url: "http://localhost:8080/geoserver/my_workspace1/wms",
+    url: "http://192.168.2.177:8080/geoserver/shksh/wms",
     params: {
-      LAYERS: "my_workspace1:layer888_utm",
+      LAYERS: "shksh:SHKSH_Sherbimet",
       VERSION: "1.1.0",
     },
   }),
-  visible: true,
-  title: "Layer 888",
+  visible: false,
+  title: "SHKSH Sherbimet",
   information: "Kufiri i tokësor i republikës së Shqipërisë",
   displayInLayerSwitcher: true,
 });
 
-const testsym = new Tile({
+const unicefRegion = new Tile({
   source: new TileWMS({
-    url: "http://localhost:8080/geoserver/my_workspace1/wms",
+    url: "http://192.168.2.177:8080/geoserver/shksh/wms",
     params: {
-      LAYERS: "my_workspace1:test_sym",
+      LAYERS: "shksh:UNICEF_Region",
       VERSION: "1.1.0",
     },
   }),
-  visible: true,
-  title: "Test Sym",
+  visible: false,
+  title: "Unicef Region",
   information: "Kufiri i tokësor i republikës së Shqipërisë",
   displayInLayerSwitcher: true,
 });
 
-const breziBregdetar = new Tile({
+const shkshRasteAktive = new Tile({
   source: new TileWMS({
-    url: "http://localhost:8080/geoserver/my_workspace1/wms",
+    url: "http://192.168.2.177:8080/geoserver/shksh/wms",
     params: {
-      LAYERS: "my_workspace1:Brezi_Bregdetar_32634",
+      LAYERS: "shksh:SHKSH_Rastet_Aktive",
+      VERSION: "1.1.0",
+    },
+  }),
+  visible: false,
+  title: "SHKSH Rastet Aktive",
+  information: "Kufiri i tokësor i republikës së Shqipërisë",
+  displayInLayerSwitcher: true,
+});
+
+const unicefInstitutionServices = new Tile({
+  source: new TileWMS({
+    url: "http://192.168.2.177:8080/geoserver/shksh/wms",
+    params: {
+      LAYERS: "shksh:UNICEF_InstitutionServices",
+      VERSION: "1.1.0",
+    },
+  }),
+  visible: false,
+  title: "UNICEF_ InstitutionServices",
+  information: "Kufiri i tokësor i republikës së Shqipërisë",
+  displayInLayerSwitcher: true,
+});
+
+const unicefUsersService = new Tile({
+  source: new TileWMS({
+    url: "http://192.168.2.177:8080/geoserver/shksh/wms",
+    params: {
+      LAYERS: "shksh:UNICEF_UsersService",
+      VERSION: "1.1.0",
+    },
+  }),
+  visible: false,
+  title: "UNICEF_ UsersService",
+  information: "Kufiri i tokësor i republikës së Shqipërisë",
+  displayInLayerSwitcher: true,
+});
+
+//NDIHMA EKONOMIKE LAYERS
+const perfitimeVitiFundit = new Tile({
+  source: new TileWMS({
+    url: "http://192.168.2.177:8080/geoserver/shksh/wms",
+    params: {
+      LAYERS: "shksh:NE_Perfitimet_Last12Months",
+      VERSION: "1.1.0",
+    },
+  }),
+  visible: false,
+  title: "NE Perfitimet (Viti i Fundit)",
+  information: "Kufiri i tokësor i republikës së Shqipërisë",
+  displayInLayerSwitcher: true,
+});
+
+const perfitimeMuajiFundit = new Tile({
+  source: new TileWMS({
+    url: "http://192.168.2.177:8080/geoserver/shksh/wms",
+    params: {
+      LAYERS: "shksh:NE_Perfitimet_LastMonth",
+      VERSION: "1.1.0",
+    },
+  }),
+  visible: false,
+  title: "NE Perfitimet (Muaji i Fundit)",
+  information: "Kufiri i tokësor i republikës së Shqipërisë",
+  displayInLayerSwitcher: true,
+});
+
+//PPAK Layer
+
+const ppakPerfitimet = new Tile({
+  source: new TileWMS({
+    url: "http://192.168.2.177:8080/geoserver/shksh/wms",
+    params: {
+      LAYERS: "shksh:PPAK_Perfitimet_Last12Months",
       VERSION: "1.1.0",
     },
   }),
   visible: true,
-  title: "Brezi Bregdetar",
+  title: "PPAK Përfitimet",
   information: "Kufiri i tokësor i republikës së Shqipërisë",
   displayInLayerSwitcher: true,
 });
@@ -456,21 +518,42 @@ const addressSystem = new LayerGroup({
   displayInLayerSwitcher: true,
 });
 
-const localData = new LayerGroup({
-  layers: [municipalitiesLocal, breziBregdetar, zonaA],
-  title: "Local Data",
+const ndihmaEkonomike = new LayerGroup({
+  layers: [perfitimeMuajiFundit, perfitimeVitiFundit],
+  title: "Ndihma Ekonomike",
   displayInLayerSwitcher: true,
 });
-const localData2 = new LayerGroup({
-  layers: [layer888, testsym],
-  title: "Local Data 2",
+
+const shksh = new LayerGroup({
+  layers: [
+    shkshInstitucionet,
+    shkshSherbimet,
+    unicefRegion,
+    shkshRasteAktive,
+    unicefInstitutionServices,
+    unicefUsersService,
+  ],
+  title: "SHKSH",
+  displayInLayerSwitcher: true,
+});
+
+const ppak = new LayerGroup({
+  layers: [ppakPerfitimet],
+  title: "PPAK",
   displayInLayerSwitcher: true,
 });
 
 const map = new Map({
   target: "map",
   controls: defaults({ attribution: false }).extend(mapControls),
-  layers: [baseLayerGroup, asigLayers, addressSystem, localData, localData2],
+  layers: [
+    baseLayerGroup,
+    asigLayers,
+    addressSystem,
+    ppak,
+    shksh,
+    ndihmaEkonomike,
+  ],
   view: new View({
     projection: krgjshProjection,
     center: krgjshCenter,
@@ -1006,9 +1089,29 @@ layerSwitcherElement.style.position = "absolute";
 layerSwitcherElement.style.top = "50px";
 layerSwitcherElement.style.right = "10px";
 
+//PRINT DIALOG
+
+const printBtn = document.querySelector(".print-dialog");
+const printDialog = new PrintDialog({
+  className: "print-dialog",
+  title: "Printo Hartën",
+  targetDialog: document.getElementById("map"),
+  openWindow: true,
+});
+
+printBtn.addEventListener("click", () => {
+  map.addControl(printDialog);
+
+  const cancelButton = document.querySelector(
+    ".ol-ext-buttons button[type='button']"
+  );
+  cancelButton.addEventListener("click", () => {
+    map.removeControl(printDialog);
+  });
+});
+
 //_____________________________________________________________________________________________
 // Display data from WMS Layer
-
 const getInfoBtn = document.getElementById("identify");
 
 function getInfo(event) {
@@ -1017,18 +1120,37 @@ function getInfo(event) {
   var coordinate = map.getCoordinateFromPixel(pixel);
 
   // Function to read visible layers in the "Local Data" group
-  function readLocalDataLayers() {
+  const layers = ppak.getLayers().getArray();
+  // Return an array of visible layers
+  const visibleLayersCheck = layers.filter((layer) => layer.getVisible());
+
+  if (!visibleLayersCheck || visibleLayersCheck.length === 0) {
+    const formContainer = document.querySelector(".form-container");
+    formContainer.style.display = "none";
+    return;
+  }
+  // Function to read visible layers in the "Local Data" group
+  function readGroupLayers(grouplayers) {
     // Get the layers of the "Local Data" layer group
-    const layers = localData.getLayers().getArray();
+    const layers = grouplayers.getLayers().getArray();
 
     // Return an array of visible layers in reverse order (uppermost layer first)
     return layers.filter((layer) => layer.getVisible()).reverse();
   }
 
-  const maxPropertiesToShow = 5;
+  const maxPropertiesToShow = 10;
+
+  // Get visible layers in the layer groups in reverse order (uppermost layer first)
+  const layerGroupOne = readGroupLayers(ndihmaEkonomike);
+  const layerGroupTwo = readGroupLayers(shksh);
+  const layerGroupThree = readGroupLayers(ppak);
 
   // Get visible layers in the "Local Data" layer group in reverse order (uppermost layer first)
-  const visibleLayers = readLocalDataLayers();
+  const visibleLayers = [
+    ...layerGroupOne,
+    ...layerGroupTwo,
+    ...layerGroupThree,
+  ];
 
   // Function to get the title of a layer
   function getLayerTitle(layer) {
@@ -1063,7 +1185,7 @@ function getInfo(event) {
 
               // Create the form container
               var formContainer = document.createElement("div");
-              formContainer.classList.add("form-container");
+              formContainer.classList.add("form-container-el");
               // Add the header with its value to the form container
               var headerElement = document.createElement("div");
               headerElement.classList.add("form-header");
@@ -1087,6 +1209,7 @@ function getInfo(event) {
               propertiesToShow.forEach(function (prop) {
                 var labelElement = document.createElement("label");
                 labelElement.textContent = prop;
+
                 var inputElement = document.createElement("input");
                 inputElement.setAttribute("readonly", "readonly");
                 inputElement.value = properties[prop];
@@ -1105,6 +1228,7 @@ function getInfo(event) {
 
               // Show the form container
               formContainer.style.display = "block";
+              existingFormContainer.style.display = "block";
             });
           } else {
             // If the layer has no features, try the next layer
@@ -1128,39 +1252,19 @@ function getInfo(event) {
   if (visibleLayers.length > 0) {
     // Start by checking the uppermost layer for features
     getLayerFeatures(visibleLayers[0]);
-  } else {
-    // If no layers are visible in the "Local Data" group, try getting data from the back layer
-    // getBackLayerData();
   }
 }
 
-getInfoBtn.addEventListener("click", function () {
-  map.on("click", function (event) {
-    // Function to read visible layers in the "Local Data" group
-    // Get the layers of the "Local Data" layer group
-    const layers = localData.getLayers().getArray();
+function getInfoClickListener(event) {
+  getInfo(event);
+}
 
-    // Return an array of visible layers
-    const visibleLayers = layers.filter((layer) => layer.getVisible());
-    if (!visibleLayers) {
-      return;
-    }
-    getInfo(event);
-    const hitTolerance = 10; // Set the hit-detection tolerance in pixels
-    const options = {
-      hitTolerance: hitTolerance,
-      layerFilter: function (layer) {
-        // Layer filter function to include only visible layers
-        return layer.getVisible();
-      },
-      checkWrapped: true, // Check for wrapped geometries
-    };
-    const features = map.getFeaturesAtPixel(event.pixel, options);
-    // Assuming you have the form container element
-    const formContainer = document.querySelector(".form-container");
-    // Set the display property to "block" to show the form
-    formContainer.style.display = "block";
-  });
+function getXYClickListener(event) {
+  getXY(event);
+}
+getInfoBtn.addEventListener("click", function () {
+  map.un("click", getXYClickListener);
+  map.on("click", getInfoClickListener);
 });
 
 //MORE RIGHT/LEFT BUTTONS
@@ -1228,38 +1332,36 @@ function decimalToDMS(decimal) {
   return degrees + "° " + minutes + "' " + seconds.toFixed(2) + "''";
 }
 
-function getXY() {
-  map.on("click", function (event) {
-    const krgjshCoords = event.coordinate;
-    // Convert the clicked coordinate to the desired projection (e.g., EPSG:4326)
-    const wgs84 = "EPSG:4326";
-    const utm34N = "EPSG:32634";
+function getXY(event) {
+  const krgjshCoords = event.coordinate;
+  // Convert the clicked coordinate to the desired projection (e.g., EPSG:4326)
+  const wgs84 = "EPSG:4326";
+  const utm34N = "EPSG:32634";
 
-    const transformedCoordinate = transform(
-      krgjshCoords,
-      map.getView().getProjection(),
-      wgs84
-    );
-    const latitudeDMS = decimalToDMS(transformedCoordinate[0]);
-    const longitudeDMS = decimalToDMS(transformedCoordinate[1]);
-    const transformedCoordinate2 = transform(
-      krgjshCoords,
-      map.getView().getProjection(),
-      utm34N
-    );
+  const transformedCoordinate = transform(
+    krgjshCoords,
+    map.getView().getProjection(),
+    wgs84
+  );
+  const latitudeDMS = decimalToDMS(transformedCoordinate[0]);
+  const longitudeDMS = decimalToDMS(transformedCoordinate[1]);
+  const transformedCoordinate2 = transform(
+    krgjshCoords,
+    map.getView().getProjection(),
+    utm34N
+  );
 
-    document.getElementById("easting").textContent = krgjshCoords[0].toFixed(2);
-    document.getElementById("northing").textContent =
-      krgjshCoords[1].toFixed(2);
-    document.getElementById("easting1").textContent = latitudeDMS;
-    document.getElementById("northing1").textContent = longitudeDMS;
-    document.getElementById("easting2").textContent =
-      transformedCoordinate2[0].toFixed(2);
-    document.getElementById("northing2").textContent =
-      transformedCoordinate2[1].toFixed(2);
-    // Show the modal
-    coordsModal.style.display = "block";
-  });
+  document.getElementById("easting").textContent = krgjshCoords[0].toFixed(2);
+  document.getElementById("northing").textContent = krgjshCoords[1].toFixed(2);
+  document.getElementById("easting1").textContent = latitudeDMS;
+  document.getElementById("northing1").textContent = longitudeDMS;
+  document.getElementById("easting2").textContent =
+    transformedCoordinate2[0].toFixed(2);
+  document.getElementById("northing2").textContent =
+    transformedCoordinate2[1].toFixed(2);
+  // Show the modal
+  coordsModal.style.display = "block";
+  // });
 }
 
 closeModal.addEventListener("click", function () {
@@ -1273,10 +1375,13 @@ window.onclick = function (event) {
   }
 };
 getXYCoordsBtn.addEventListener("click", function () {
-  getXY();
+  const formContainer = document.querySelector(".form-container");
+  formContainer.style.display = "none";
+  map.un("click", getInfoClickListener);
+  map.on("click", getXYClickListener);
 });
 
-// Function to calculate and log the scale
+// CALCULATE SCALE
 function calculateScale() {
   // Get the map's view
   const view = map.getView();
@@ -1288,9 +1393,8 @@ function calculateScale() {
 
   // Define the number of inches per unit based on your map's projection
   const inchesPerUnit = {
-    m: 39.37007874, // Inches per meter
-    ft: 12, // Inches per foot
-    // Add more conversions as needed for other units
+    m: 39.37007874,
+    ft: 12,
   };
 
   // Get the dots per inch of your display (e.g., standard is 96 dpi)
@@ -1343,7 +1447,7 @@ inputElement.addEventListener("keyup", function (event) {
 // Add event listener to the map view to update scale on change
 const view = map.getView();
 view.on("change", function () {
-  calculateScale(); // Call the calculateScale() function to update the scale input
+  calculateScale();
 });
 
 calculateScale();

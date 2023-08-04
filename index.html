@@ -53,21 +53,30 @@
           >
             <i class="fa-solid fa-location-dot"></i>
           </button>
-          <button class="fa-button" id="measure-length" title="Measure Length">
-            <i class="fa-solid fa-ruler"></i>
+          <div class="measurement">
+            <button
+              class="fa-button"
+              id="measure-length"
+              title="Measure Length"
+            >
+              <i class="fa-solid fa-ruler"></i>
+            </button>
+            <button class="fa-button" id="measure-area" title="Measure Area">
+              <i class="fa-solid fa-ruler-combined"></i>
+            </button>
+            <label for="segments">Show segment lengths: </label>
+            <input type="checkbox" id="segments" checked />
+            <label for="clear">Clear previous measure: </label>
+            <input type="checkbox" id="clear" checked />
+          </div>
+          <button class="print-dialog" id="print-dialog" title="Print Map">
+            <i class="fa-solid fa-print"></i>
           </button>
-          <button class="fa-button" id="measure-area" title="Measure Area">
-            <i class="fa-solid fa-ruler-combined"></i>
-          </button>
-          <label for="segments">Show segment lengths: </label>
-          <input type="checkbox" id="segments" checked />
-          <label for="clear">Clear previous measure: </label>
-          <input type="checkbox" id="clear" checked />
         </div>
       </div>
       <div id="map">
         <div class="form-container" style="display: none">
-          <button id="close-form">Close Form</button>
+          <span class="close-form">&times;</span>
         </div>
       </div>
     </div>
