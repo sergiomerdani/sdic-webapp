@@ -43,8 +43,6 @@ import { getLength, getArea } from "ol/sphere";
 import { Modify, Draw } from "ol/interaction";
 import Graticule from "ol/layer/Graticule.js";
 import Geolocation from "ol/Geolocation.js";
-import Popup from "ol-ext/overlay/Popup";
-import Select from "ol/interaction/Select";
 import { DragPan } from "ol/interaction";
 import PrintDialog from "ol-ext/control/PrintDialog";
 
@@ -932,7 +930,6 @@ let drawPoly;
 const drawnLineSource = new VectorSource();
 measureLine.addEventListener("click", function () {
   map.removeInteraction(drawPoly);
-
   drawnPolygonSource.clear();
   const drawType = "LineString";
   const activeTip =
@@ -948,6 +945,8 @@ measureLine.addEventListener("click", function () {
     },
   });
   drawLine.on("drawstart", function () {
+    map.un("click", getXYClickListener);
+    map.un("click", getInfoClickListener);
     if (clearPrevious.checked) {
       vectorSource.clear();
       drawnLineSource.clear();
@@ -981,7 +980,6 @@ map.addLayer(drawnLineLayer);
 const drawnPolygonSource = new VectorSource();
 measurePolygon.addEventListener("click", function () {
   map.removeInteraction(drawLine);
-
   drawnLineSource.clear();
   const drawType = "Polygon";
   const activeTip =
@@ -996,7 +994,10 @@ measurePolygon.addEventListener("click", function () {
       return styleFunction(feature, showSegments.checked, drawType, tip);
     },
   });
+
   drawPoly.on("drawstart", function () {
+    map.un("click", getXYClickListener);
+    map.un("click", getInfoClickListener);
     if (clearPrevious.checked) {
       vectorSource.clear();
       drawnPolygonSource.clear();
@@ -1025,14 +1026,13 @@ const drawnPolygonLayer = new VectorLayer({
   style: styleFunction,
   displayInLayerSwitcher: false,
 });
+map.addLayer(drawnPolygonLayer);
 
 // The displayInLayerSwitcher function
 const displayInLayerSwitcher = (layer) => {
   // Check if the layer has the displayInLayerSwitcher attribute and it's set to true
   return layer.get("displayInLayerSwitcher") === true;
 };
-
-map.addLayer(drawnPolygonLayer);
 
 //__________________________________________________________________________________________
 // Create the LayerSwitcherImage control
@@ -1119,21 +1119,13 @@ function getInfo(event) {
   const pixel = event.pixel;
   var coordinate = map.getCoordinateFromPixel(pixel);
 
-  // Function to read visible layers in the "Local Data" group
-  const layers = ppak.getLayers().getArray();
-  // Return an array of visible layers
-  const visibleLayersCheck = layers.filter((layer) => layer.getVisible());
+  let visibleLayers;
 
-  if (!visibleLayersCheck || visibleLayersCheck.length === 0) {
-    const formContainer = document.querySelector(".form-container");
-    formContainer.style.display = "none";
-    return;
-  }
   // Function to read visible layers in the "Local Data" group
   function readGroupLayers(grouplayers) {
     // Get the layers of the "Local Data" layer group
     const layers = grouplayers.getLayers().getArray();
-
+    const vlay = layers.filter((layer) => layer.getVisible()).reverse();
     // Return an array of visible layers in reverse order (uppermost layer first)
     return layers.filter((layer) => layer.getVisible()).reverse();
   }
@@ -1146,11 +1138,13 @@ function getInfo(event) {
   const layerGroupThree = readGroupLayers(ppak);
 
   // Get visible layers in the "Local Data" layer group in reverse order (uppermost layer first)
-  const visibleLayers = [
-    ...layerGroupOne,
-    ...layerGroupTwo,
-    ...layerGroupThree,
-  ];
+  visibleLayers = [...layerGroupOne, ...layerGroupTwo, ...layerGroupThree];
+
+  if (visibleLayers.length < 1) {
+    const formContainer = document.querySelector(".form-container");
+    formContainer.style.display = "none";
+    return;
+  }
 
   // Function to get the title of a layer
   function getLayerTitle(layer) {
@@ -1265,6 +1259,10 @@ function getXYClickListener(event) {
 getInfoBtn.addEventListener("click", function () {
   map.un("click", getXYClickListener);
   map.on("click", getInfoClickListener);
+  map.removeInteraction(drawPoly);
+  map.removeInteraction(drawLine);
+  map.removeLayer(drawnLineLayer);
+  map.removeLayer(drawnPolygonLayer);
 });
 
 //MORE RIGHT/LEFT BUTTONS
@@ -1375,6 +1373,11 @@ window.onclick = function (event) {
   }
 };
 getXYCoordsBtn.addEventListener("click", function () {
+  map.removeInteraction(drawPoly);
+  map.removeInteraction(drawLine);
+  map.removeLayer(drawnLineLayer);
+  map.removeLayer(drawnPolygonLayer);
+
   const formContainer = document.querySelector(".form-container");
   formContainer.style.display = "none";
   map.un("click", getInfoClickListener);
