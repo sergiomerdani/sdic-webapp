@@ -8,6 +8,7 @@ import { register } from "ol/proj/proj4";
 import { Projection, fromLonLat, transform, useGeographic } from "ol/proj";
 import Tile from "ol/layer/Tile";
 import TileWMS from "ol/source/TileWMS.js";
+import GeoJSON from "ol/format/GeoJSON.js";
 import {
   Attribution,
   defaults,
@@ -38,6 +39,7 @@ import {
   Stroke,
   Text,
   RegularShape,
+  Icon,
 } from "ol/style";
 import { getLength, getArea } from "ol/sphere";
 import { Modify, Draw } from "ol/interaction";
@@ -45,6 +47,14 @@ import Graticule from "ol/layer/Graticule.js";
 import Geolocation from "ol/Geolocation.js";
 import { DragPan } from "ol/interaction";
 import PrintDialog from "ol-ext/control/PrintDialog";
+import CanvasAttribution from "ol-ext/control/CanvasAttribution";
+import CanvasScaleLine from "ol-ext/control/CanvasScaleLine";
+import CanvasTitle from "ol-ext/control/CanvasTitle";
+import CenterPosition from "ol-ext/control/CenterPosition";
+import ol_control_Legend from "ol-ext/control/Legend";
+import ol_legend_Legend from "ol-ext/legend/Legend";
+import { jsPDF } from "jspdf";
+import SelectControl from "ol-ext/control/Select";
 
 proj4.defs(
   "EPSG:6870",
@@ -104,14 +114,14 @@ const mousePositionControl = new MousePosition({
 });
 
 //ScaleLine Control
-const scaleLineControl = new ScaleLine({
-  minWidth: 200,
-  units: "metric",
-  bar: true,
-  steps: 6,
-  // text: true,
-  className: "ol-scale-bar",
-});
+// const scaleLineControl = new ScaleLine({
+//   minWidth: 200,
+//   units: "metric",
+//   bar: true,
+//   steps: 6,
+//   // text: true,
+//   className: "ol-scale-bar",
+// });
 
 //OverView Map Control
 // const overViewMap = new OverviewMap({
@@ -168,7 +178,7 @@ const mapControls = [
   fullScreenControl,
   // zoomSlider,
   mousePositionControl,
-  scaleLineControl,
+  // scaleLineControl,
   // overViewMap,
   rotate,
   dragPan,
@@ -288,6 +298,16 @@ const shkshInstitucionet = new Tile({
   displayInLayerSwitcher: true,
 });
 
+const shkshInstitucionetVector = new VectorLayer({
+  source: new VectorSource({
+    url: "http://192.168.2.177:8080/geoserver/shksh/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=shksh%3ASHKSH_Institucionet&maxFeatures=5000&outputFormat=application/json",
+    format: new GeoJSON(),
+    attributions: "@geoserver",
+  }),
+  title: "SHKSH Institucionet Vector",
+  opacity: 0,
+});
+
 const shkshSherbimet = new Tile({
   source: new TileWMS({
     url: "http://192.168.2.177:8080/geoserver/shksh/wms",
@@ -300,6 +320,16 @@ const shkshSherbimet = new Tile({
   title: "SHKSH Sherbimet",
   information: "Kufiri i tokësor i republikës së Shqipërisë",
   displayInLayerSwitcher: true,
+});
+
+const shkshSherbimetVector = new VectorLayer({
+  source: new VectorSource({
+    url: "http://192.168.2.177:8080/geoserver/shksh/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=shksh%3ASHKSH_Sherbimet&maxFeatures=5000&outputFormat=application/json",
+    format: new GeoJSON(),
+    attributions: "@geoserver",
+  }),
+  title: "SHKSH Sherbimet Vector",
+  opacity: 0,
 });
 
 const unicefRegion = new Tile({
@@ -316,6 +346,16 @@ const unicefRegion = new Tile({
   displayInLayerSwitcher: true,
 });
 
+const unicefRegionVector = new VectorLayer({
+  source: new VectorSource({
+    url: "http://192.168.2.177:8080/geoserver/shksh/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=shksh%3AUNICEF_Region&maxFeatures=5000&outputFormat=application/json",
+    format: new GeoJSON(),
+    attributions: "@geoserver",
+  }),
+  title: "Unicef Region Vector",
+  opacity: 0,
+});
+
 const shkshRasteAktive = new Tile({
   source: new TileWMS({
     url: "http://192.168.2.177:8080/geoserver/shksh/wms",
@@ -328,6 +368,16 @@ const shkshRasteAktive = new Tile({
   title: "SHKSH Rastet Aktive",
   information: "Kufiri i tokësor i republikës së Shqipërisë",
   displayInLayerSwitcher: true,
+});
+
+const shkshRasteAktiveVector = new VectorLayer({
+  source: new VectorSource({
+    url: "http://192.168.2.177:8080/geoserver/shksh/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=shksh%3ASHKSH_Rastet_Aktive&maxFeatures=5000&outputFormat=application/json",
+    format: new GeoJSON(),
+    attributions: "@geoserver",
+  }),
+  title: "SHKSH Rastet Aktive Vector",
+  opacity: 0,
 });
 
 const unicefInstitutionServices = new Tile({
@@ -344,6 +394,16 @@ const unicefInstitutionServices = new Tile({
   displayInLayerSwitcher: true,
 });
 
+const unicefInstitutionServicesVector = new VectorLayer({
+  source: new VectorSource({
+    url: "http://192.168.2.177:8080/geoserver/shksh/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=shksh%3AUNICEF_InstitutionServices&maxFeatures=5000&outputFormat=application/json",
+    format: new GeoJSON(),
+    attributions: "@geoserver",
+  }),
+  title: "UNICEF_ InstitutionServices Vector",
+  opacity: 0,
+});
+
 const unicefUsersService = new Tile({
   source: new TileWMS({
     url: "http://192.168.2.177:8080/geoserver/shksh/wms",
@@ -356,6 +416,16 @@ const unicefUsersService = new Tile({
   title: "UNICEF_ UsersService",
   information: "Kufiri i tokësor i republikës së Shqipërisë",
   displayInLayerSwitcher: true,
+});
+
+const unicefUsersServiceVector = new VectorLayer({
+  source: new VectorSource({
+    url: "http://192.168.2.177:8080/geoserver/shksh/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=shksh%3AUNICEF_UsersService&maxFeatures=5000&outputFormat=application/json",
+    format: new GeoJSON(),
+    attributions: "@geoserver",
+  }),
+  title: "UNICEF_ UsersService Vector",
+  opacity: 0,
 });
 
 //NDIHMA EKONOMIKE LAYERS
@@ -373,6 +443,16 @@ const perfitimeVitiFundit = new Tile({
   displayInLayerSwitcher: true,
 });
 
+const perfitimeVitiFunditVector = new VectorLayer({
+  source: new VectorSource({
+    url: "http://192.168.2.177:8080/geoserver/shksh/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=shksh%3ANE_Perfitimet_Last12Months&maxFeatures=5000&outputFormat=application/json",
+    format: new GeoJSON(),
+    attributions: "@geoserver",
+  }),
+  title: "NE Perfitimet (Viti i Fundit) Vector",
+  opacity: 0,
+});
+
 const perfitimeMuajiFundit = new Tile({
   source: new TileWMS({
     url: "http://192.168.2.177:8080/geoserver/shksh/wms",
@@ -381,14 +461,23 @@ const perfitimeMuajiFundit = new Tile({
       VERSION: "1.1.0",
     },
   }),
-  visible: false,
+  visible: true,
   title: "NE Perfitimet (Muaji i Fundit)",
   information: "Kufiri i tokësor i republikës së Shqipërisë",
   displayInLayerSwitcher: true,
 });
 
-//PPAK Layer
+const perfitimeMuajiFunditVector = new VectorLayer({
+  source: new VectorSource({
+    url: "http://192.168.2.177:8080/geoserver/shksh/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=shksh%3ANE_Perfitimet_LastMonth&maxFeatures=5000&outputFormat=application/json",
+    format: new GeoJSON(),
+    attributions: "@geoserver",
+  }),
+  title: "NE Perfitimet (Muaji i Fundit) Vector",
+  opacity: 0,
+});
 
+//PPAK Layer
 const ppakPerfitimet = new Tile({
   source: new TileWMS({
     url: "http://192.168.2.177:8080/geoserver/shksh/wms",
@@ -401,6 +490,16 @@ const ppakPerfitimet = new Tile({
   title: "PPAK Përfitimet",
   information: "Kufiri i tokësor i republikës së Shqipërisë",
   displayInLayerSwitcher: true,
+});
+
+const ppakPerfitimetVector = new VectorLayer({
+  source: new VectorSource({
+    url: "http://192.168.2.177:8080/geoserver/shksh/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=shksh%3APPAK_Perfitimet_Last12Months&maxFeatures=5000&outputFormat=application/json",
+    format: new GeoJSON(),
+    attributions: "@geoserver",
+  }),
+  title: "PPAK Përfitimet Vector",
+  opacity: 0,
 });
 
 const protectedAreas = new Tile({
@@ -1035,19 +1134,28 @@ const displayInLayerSwitcher = (layer) => {
 };
 
 //__________________________________________________________________________________________
-// Create the LayerSwitcherImage control
-//Switching layers on/off regarding to LayerGroup status
-const onChangeCheck = function (evt) {
-  const layer = evt;
 
-  const baseLayer = layer.get("title") === "Base Layers";
+// Customizing layer switcher functions
+const layerGroups = [asigLayers, addressSystem, ppak, shksh, ndihmaEkonomike];
+
+const onChangeCheck = function (evt) {
+  const clickedLayer = evt;
+  console.log(clickedLayer.getVisible());
+  const parentLayerGroup = findParentLayerGroup(clickedLayer);
+
+  if (parentLayerGroup && clickedLayer.getVisible()) {
+    parentLayerGroup.setVisible(true);
+  } else if (parentLayerGroup && hasVisibleSubLayer(parentLayerGroup)) {
+    parentLayerGroup.setVisible(false);
+  }
+  const baseLayer = clickedLayer.get("title") === "Base Layers";
   try {
     const layers = evt.getLayers().getArray();
+
     layers.forEach((subLayer) => {
-      console.log();
       if (
-        layer instanceof LayerGroup &&
-        layer.values_.visible === true &&
+        clickedLayer instanceof LayerGroup &&
+        clickedLayer.values_.visible === true &&
         !baseLayer
       ) {
         subLayer.setVisible(true);
@@ -1056,7 +1164,43 @@ const onChangeCheck = function (evt) {
       }
     });
   } catch (error) {}
+  addLayerToQuery();
 };
+
+function findParentLayerGroup(layer) {
+  let parentLayerGroup = null;
+
+  map.getLayers().forEach((group) => {
+    if (group instanceof LayerGroup) {
+      const layersInGroup = group.getLayers().getArray();
+      if (layersInGroup.includes(layer)) {
+        parentLayerGroup = group;
+        return;
+      }
+    }
+  });
+
+  return parentLayerGroup;
+}
+
+// Function to check if at least one sub-layer within a layer group is visible
+const hasVisibleSubLayer = function (layerGroup) {
+  if (!(layerGroup instanceof LayerGroup)) {
+    return false;
+  }
+  const layers = layerGroup.getLayers().getArray();
+  let isAnySubLayerVisible = false;
+  layers.forEach((subLayer) => {
+    if (subLayer.getVisible()) {
+      isAnySubLayerVisible = true;
+    }
+  });
+  layerGroup.setVisible(isAnySubLayerVisible);
+};
+// Loop through each layer group and update its visibility
+layerGroups.forEach((layerGroup) => {
+  hasVisibleSubLayer(layerGroup);
+});
 
 const layerSwitcher = new LayerSwitcher({
   displayInLayerSwitcher: displayInLayerSwitcher,
@@ -1088,27 +1232,6 @@ const layerSwitcherElement = layerSwitcher.element;
 layerSwitcherElement.style.position = "absolute";
 layerSwitcherElement.style.top = "50px";
 layerSwitcherElement.style.right = "10px";
-
-//PRINT DIALOG
-
-const printBtn = document.querySelector(".print-dialog");
-const printDialog = new PrintDialog({
-  className: "print-dialog",
-  title: "Printo Hartën",
-  targetDialog: document.getElementById("map"),
-  openWindow: true,
-});
-
-printBtn.addEventListener("click", () => {
-  map.addControl(printDialog);
-
-  const cancelButton = document.querySelector(
-    ".ol-ext-buttons button[type='button']"
-  );
-  cancelButton.addEventListener("click", () => {
-    map.removeControl(printDialog);
-  });
-});
 
 //_____________________________________________________________________________________________
 // Display data from WMS Layer
@@ -1405,6 +1528,7 @@ function calculateScale() {
 
   // Calculate the scale
   const scale = resolution * inchesPerUnit[units] * dpi;
+
   // Update the input value with the calculated scale
   const scaleInput = document.getElementById("scaleInput");
   scaleInput.value = "1:" + scale.toFixed(0);
@@ -1454,3 +1578,379 @@ view.on("change", function () {
 });
 
 calculateScale();
+
+//PRINT CONTROL
+
+map.addControl(new CanvasAttribution({ canvas: true }));
+// Add a title control
+map.addControl(
+  new CanvasTitle({
+    title: "my title",
+    visible: false,
+    style: new Style({
+      text: new Text({
+        font: '20px "Lucida Grande",Verdana,Geneva,Lucida,Arial,Helvetica,sans-serif',
+      }),
+    }),
+  })
+);
+// // Add a ScaleLine control
+map.addControl(new CanvasScaleLine());
+
+// Print control
+var printControl = new PrintDialog({
+  immediate: true,
+  collapsed: false,
+});
+printControl.setSize("A4");
+printControl.setOrientation("landscape");
+printControl.setMargin("5");
+
+map.addControl(printControl);
+printControl.on(["print", "error"], function (e) {
+  // Print success
+  if (e.image) {
+    if (e.pdf) {
+      // Export pdf using the print info
+      var pdf = new jsPDF({
+        orientation: e.print.orientation,
+        unit: e.print.unit,
+        format: e.print.size,
+      });
+      pdf.addImage(
+        e.image,
+        "JPEG",
+        e.print.position[0],
+        e.print.position[0],
+        e.print.imageWidth,
+        e.print.imageHeight
+      );
+      pdf.save(e.print.legend ? "legend.pdf" : "map.pdf");
+    } else {
+      // Save image as file
+      e.canvas.toBlob(
+        function (blob) {
+          var name = "title 1"; //(e.print.legend ? 'legend.' : 'map.')+e.imageType.replace('image/','');
+          saveAs(blob, name);
+        },
+        e.imageType,
+        e.quality
+      );
+    }
+  } else {
+    console.warn("No canvas to export");
+  }
+});
+
+// Select the .ol-print button
+const olPrintButton = document.querySelector(".ol-print");
+
+// Select the container where you want to append the button (assuming it's .buttons)
+const buttonsContainer = document.querySelector(".buttons");
+
+// Append the olPrintButton to the buttonsContainer
+buttonsContainer.appendChild(olPrintButton);
+
+map.addLayer(perfitimeVitiFunditVector);
+map.addLayer(perfitimeMuajiFunditVector);
+map.addLayer(ppakPerfitimetVector);
+map.addLayer(unicefUsersServiceVector);
+map.addLayer(unicefInstitutionServicesVector);
+map.addLayer(shkshRasteAktiveVector);
+map.addLayer(unicefRegionVector);
+map.addLayer(shkshSherbimetVector);
+map.addLayer(shkshInstitucionetVector);
+
+const layers = [
+  perfitimeVitiFunditVector,
+  perfitimeMuajiFunditVector,
+  ppakPerfitimetVector,
+  unicefUsersServiceVector,
+  unicefInstitutionServicesVector,
+  shkshRasteAktiveVector,
+  unicefRegionVector,
+  shkshSherbimetVector,
+  shkshInstitucionetVector,
+];
+
+const wmsLayers = [
+  perfitimeVitiFundit,
+  perfitimeMuajiFundit,
+  ppakPerfitimet,
+  unicefUsersService,
+  unicefInstitutionServices,
+  shkshRasteAktive,
+  unicefRegion,
+  shkshSherbimet,
+  shkshInstitucionet,
+];
+// Populate the dropdown with layer names
+// const layerSelect = document.getElementById("layerSelect");
+// layers.forEach((layer, index) => {
+//   const option = document.createElement("option");
+//   option.value = index;
+//   option.text = layer.get("title");
+//   layerSelect.appendChild(option);
+// });
+
+function addLayerToQuery() {
+  layerSelect.innerHTML = "";
+  wmsLayers.forEach((wmsLayer, index) => {
+    if (wmsLayer.getVisible()) {
+      const layerToAdd = layers[index];
+      console.log(layerToAdd);
+      const option = document.createElement("option");
+      option.value = index;
+      option.text = layerToAdd.get("title");
+      layerSelect.appendChild(option);
+    }
+  });
+}
+
+addLayerToQuery();
+
+// Event listener for layer selection change
+layerSelect.addEventListener("change", function () {
+  getFields();
+});
+const operatorSelect = document.getElementById("operator");
+
+const attributeSelect = document.getElementById("attributeSelect");
+
+const greaterThanOption = document.querySelector('option[value=">"]');
+const lessThanOption = document.querySelector('option[value="<"]');
+const equalOption = document.querySelector('option[value="="]');
+const likeOption = document.querySelector('option[value="LIKE"]');
+let isNumberField = true;
+
+function getAttributes() {
+  const selectedField = fieldSelect.value;
+  const selectedLayerIndex = parseInt(layerSelect.value);
+  const selectedLayer = layers[selectedLayerIndex];
+  const source = selectedLayer.getSource();
+  const allFeatures = source.getFeatures();
+
+  // Clear the attribute select dropdown
+  attributeSelect.innerHTML = "";
+  attributeSelect.style.display = "none";
+
+  // Create an array to store unique attribute values
+  const attributeValues = [];
+
+  // Determine if the selected field's attributes are numbers
+  allFeatures.forEach((feature) => {
+    const properties = feature.getProperties();
+    const attributeValue = properties[selectedField];
+    if (typeof attributeValue !== "number") {
+      isNumberField = false;
+    }
+    if (!attributeValues.includes(attributeValue)) {
+      attributeValues.push(attributeValue);
+    }
+  });
+
+  // Clear existing options and input fields
+  attributeSelect.innerHTML = "";
+  const existingInput = document.getElementById("attributeInput");
+  if (existingInput) {
+    existingInput.remove();
+  }
+
+  // Check if the selected operator is "LIKE"
+  if (!isNumberField && operatorSelect.value === "LIKE") {
+    // If the operator is "LIKE", replace the attribute select dropdown with an input field
+    const input = document.createElement("input");
+    input.type = "text";
+    input.id = "attributeInput";
+    input.placeholder = "Enter a value";
+    attributeSelect.parentNode.insertBefore(input, attributeSelect);
+  } else if (isNumberField) {
+    // If the field's attributes are numbers, replace the attribute select dropdown with an input field
+    const input = document.createElement("input");
+    input.type = "number";
+    input.id = "attributeInput";
+    input.placeholder = "Enter a number";
+    attributeSelect.parentNode.insertBefore(input, attributeSelect);
+  } else {
+    // If the field's attributes are not numbers and the operator is not "LIKE", populate the attribute select dropdown
+    attributeSelect.style.display = "block";
+    attributeValues.forEach((value) => {
+      const option = document.createElement("option");
+      option.value = value;
+      option.textContent = value;
+      attributeSelect.appendChild(option);
+    });
+  }
+}
+const fieldSelect = document.getElementById("fieldSelect");
+
+function getFields() {
+  // Get a reference to the <select> element
+  fieldSelect.innerHTML = "";
+  // Clear the fields array
+  let fields = [];
+  const selectedLayerIndex = parseInt(layerSelect.value);
+  const selectedLayer = layers[selectedLayerIndex];
+  const source = selectedLayer.getSource();
+
+  const allFeatures = source.getFeatures();
+  const propertyValuesMap = {};
+
+  // Load features from the WFS source
+  allFeatures.forEach((feature) => {
+    const properties = feature.getProperties();
+
+    for (const key in properties) {
+      if (properties.hasOwnProperty(key)) {
+        if (!propertyValuesMap[key]) {
+          propertyValuesMap[key] = [];
+        }
+        propertyValuesMap[key].push(properties[key]);
+      }
+    }
+  });
+
+  const allKeys = Object.keys(propertyValuesMap);
+
+  // Filter out the "geometry" field
+  // const filteredKeys = allKeys.filter((key) => key !== "geometry");
+  const filteredKeys = allKeys.filter((key) => {
+    return key !== "geometry" && key !== "id";
+  });
+
+  filteredKeys.forEach((key) => {
+    fields.push(key);
+  });
+
+  // Loop through the key variable and populate the <select> with options
+  fields.forEach((value) => {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = value;
+    fieldSelect.appendChild(option);
+  });
+}
+
+operatorSelect.addEventListener("change", function () {
+  getAttributes();
+});
+
+const filterCQL = function () {
+  const selectedLayerIndex = parseInt(layerSelect.value);
+  const selectedLayer = layers[selectedLayerIndex];
+  // Check if the attribute select dropdown is hidden (number field)
+  const attributeInput = document.getElementById("attributeInput");
+  let targetSource;
+  if (selectedLayer === perfitimeVitiFunditVector) {
+    targetSource = perfitimeVitiFundit.getSource();
+  } else if (selectedLayer === perfitimeMuajiFunditVector) {
+    targetSource = perfitimeMuajiFundit.getSource();
+  } else if (selectedLayer === ppakPerfitimetVector) {
+    targetSource = ppakPerfitimet.getSource();
+  } else if (selectedLayer === unicefUsersServiceVector) {
+    targetSource = unicefUsersService.getSource();
+  } else if (selectedLayer === unicefInstitutionServicesVector) {
+    targetSource = unicefInstitutionServices.getSource();
+  } else if (selectedLayer === shkshRasteAktiveVector) {
+    targetSource = shkshRasteAktive.getSource();
+  } else if (selectedLayer === unicefRegionVector) {
+    targetSource = unicefRegion.getSource();
+  } else if (selectedLayer === shkshSherbimetVector) {
+    targetSource = shkshSherbimet.getSource();
+  } else if (selectedLayer === shkshInstitucionetVector) {
+    targetSource = shkshInstitucionet.getSource();
+  }
+
+  if (targetSource) {
+    const params = targetSource.getParams();
+
+    const selectedField = fieldSelect.value;
+    const selectedOperator = operatorSelect.value;
+    let selectedAttribute;
+
+    if (attributeInput) {
+      selectedAttribute = attributeInput.value.toUpperCase();
+
+      const CQLFilter =
+        selectedField +
+        " " +
+        selectedOperator +
+        " '" +
+        selectedAttribute +
+        "%'";
+
+      params.CQL_FILTER = CQLFilter;
+    } else {
+      selectedAttribute = attributeSelect.value;
+
+      const CQLFilter =
+        selectedField + " " + selectedOperator + " '" + selectedAttribute + "'";
+      console.log(CQLFilter);
+      params.CQL_FILTER = CQLFilter;
+    }
+    targetSource.updateParams(params);
+  }
+};
+
+const sumbmitBtn = document.getElementById("sumbmitBtn");
+
+sumbmitBtn.addEventListener("click", (e) => {
+  e.preventDefault();
+  filterCQL();
+});
+
+// Function to check if a field's attributes are numeric
+function isNumericField(field) {
+  const selectedLayerIndex = parseInt(layerSelect.value);
+  const selectedLayer = layers[selectedLayerIndex];
+  const source = selectedLayer.getSource();
+  const allFeatures = source.getFeatures();
+
+  for (const feature of allFeatures) {
+    const properties = feature.getProperties();
+    const attributeValue = properties[field];
+    if (typeof attributeValue !== "number") {
+      return false;
+    }
+  }
+  return true;
+}
+
+// Function to check if a field's attributes are string
+function isStringField(field) {
+  const selectedLayerIndex = parseInt(layerSelect.value);
+  const selectedLayer = layers[selectedLayerIndex];
+  const source = selectedLayer.getSource();
+  const allFeatures = source.getFeatures();
+
+  for (const feature of allFeatures) {
+    const properties = feature.getProperties();
+    const attributeValue = properties[field];
+    if (typeof attributeValue !== "string") {
+      return false;
+    }
+  }
+  return true;
+}
+
+// Update operator options based on selected field
+function updateOperatorOptions() {
+  const selectedField = fieldSelect.value;
+
+  greaterThanOption.disabled = !isNumericField(selectedField);
+  lessThanOption.disabled = !isNumericField(selectedField);
+  likeOption.disabled = isNumericField(selectedField);
+}
+
+// Event listener for field selection change
+fieldSelect.addEventListener("change", function () {
+  updateOperatorOptions();
+  getAttributes();
+});
+
+const selectControlBtn = document.querySelector("#selectControlButton");
+const selectControlForm = document.querySelector(".selectControl");
+
+selectControlBtn.addEventListener("click", () => {
+  selectControlForm.hidden = !selectControlForm.hidden;
+});

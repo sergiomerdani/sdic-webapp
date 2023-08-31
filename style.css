@@ -5,6 +5,9 @@
 @import "./node_modules/ol-ext/overlay/Popup.css";
 @import "./node_modules/ol-ext/control/Overview.css";
 @import "./node_modules/ol-ext/control/PrintDialog.css";
+@import "./node_modules/ol-ext/control/Legend.css";
+@import "./node_modules/ol-ext/dist/ol-ext.css";
+@import "./node_modules/ol/ol.css";
 
 * {
   margin: 0;
@@ -68,8 +71,7 @@ header {
 }
 
 .ol-search {
-  top: 0.5em;
-  right: 2.1em;
+  left: 1200px;
 }
 
 #map {
@@ -198,4 +200,67 @@ td {
   padding: 5px;
   display: inline-block;
   margin-right: 5px;
+}
+
+.ol-ext-print-dialog .ol-print-param {
+  position: absolute;
+  overflow-x: hidden;
+  top: 50px;
+  bottom: 20px;
+  left: 20px;
+  width: 18rem;
+  background-color: #fff;
+  padding: 1em;
+  box-sizing: border-box;
+}
+
+.selectControl {
+  padding: 30px;
+  position: fixed;
+  top: 90px;
+  left: 20px;
+  width: auto;
+  height: auto;
+  background-color: #c7e6ff;
+  z-index: 1000;
+  opacity: 0.9;
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.selectControl h1 {
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+.selectControl label {
+  display: block;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+.selectControl select {
+  width: 100%;
+  padding: 5px;
+  margin-top: 5px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+}
+
+.selectControl input[type="button"] {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.selectControl input[type="button"]:hover {
+  background-color: #0056b3;
 }
