@@ -1651,15 +1651,15 @@ const buttonsContainer = document.querySelector(".buttons");
 // Append the olPrintButton to the buttonsContainer
 buttonsContainer.appendChild(olPrintButton);
 
-// map.addLayer(perfitimeVitiFunditVector);
-// map.addLayer(perfitimeMuajiFunditVector);
-// map.addLayer(ppakPerfitimetVector);
-// map.addLayer(unicefUsersServiceVector);
-// map.addLayer(unicefInstitutionServicesVector);
-// map.addLayer(shkshRasteAktiveVector);
-// map.addLayer(unicefRegionVector);
-// map.addLayer(shkshSherbimetVector);
-// map.addLayer(shkshInstitucionetVector);
+map.addLayer(perfitimeVitiFunditVector);
+map.addLayer(perfitimeMuajiFunditVector);
+map.addLayer(ppakPerfitimetVector);
+map.addLayer(unicefUsersServiceVector);
+map.addLayer(unicefInstitutionServicesVector);
+map.addLayer(shkshRasteAktiveVector);
+map.addLayer(unicefRegionVector);
+map.addLayer(shkshSherbimetVector);
+map.addLayer(shkshInstitucionetVector);
 
 const layers = [
   perfitimeVitiFunditVector,
