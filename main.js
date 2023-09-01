@@ -1213,12 +1213,12 @@ const layerSwitcher = new LayerSwitcher({
   onextent: (e) => {
     console.log(e);
   },
-  noScroll: true,
   oninfo: (e) => {
     alert(e.values_.information);
   },
 });
 
+// const layerSwitcher = new LayerSwitcher();
 // // Add the LayerSwitcherImage control to the map
 map.addControl(layerSwitcher);
 
@@ -1651,15 +1651,15 @@ const buttonsContainer = document.querySelector(".buttons");
 // Append the olPrintButton to the buttonsContainer
 buttonsContainer.appendChild(olPrintButton);
 
-map.addLayer(perfitimeVitiFunditVector);
-map.addLayer(perfitimeMuajiFunditVector);
-map.addLayer(ppakPerfitimetVector);
-map.addLayer(unicefUsersServiceVector);
-map.addLayer(unicefInstitutionServicesVector);
-map.addLayer(shkshRasteAktiveVector);
-map.addLayer(unicefRegionVector);
-map.addLayer(shkshSherbimetVector);
-map.addLayer(shkshInstitucionetVector);
+// map.addLayer(perfitimeVitiFunditVector);
+// map.addLayer(perfitimeMuajiFunditVector);
+// map.addLayer(ppakPerfitimetVector);
+// map.addLayer(unicefUsersServiceVector);
+// map.addLayer(unicefInstitutionServicesVector);
+// map.addLayer(shkshRasteAktiveVector);
+// map.addLayer(unicefRegionVector);
+// map.addLayer(shkshSherbimetVector);
+// map.addLayer(shkshInstitucionetVector);
 
 const layers = [
   perfitimeVitiFunditVector,
@@ -1684,21 +1684,12 @@ const wmsLayers = [
   shkshSherbimet,
   shkshInstitucionet,
 ];
-// Populate the dropdown with layer names
-// const layerSelect = document.getElementById("layerSelect");
-// layers.forEach((layer, index) => {
-//   const option = document.createElement("option");
-//   option.value = index;
-//   option.text = layer.get("title");
-//   layerSelect.appendChild(option);
-// });
 
 function addLayerToQuery() {
   layerSelect.innerHTML = "";
   wmsLayers.forEach((wmsLayer, index) => {
     if (wmsLayer.getVisible()) {
       const layerToAdd = layers[index];
-      console.log(layerToAdd);
       const option = document.createElement("option");
       option.value = index;
       option.text = layerToAdd.get("title");
@@ -1917,21 +1908,21 @@ function isNumericField(field) {
 }
 
 // Function to check if a field's attributes are string
-function isStringField(field) {
-  const selectedLayerIndex = parseInt(layerSelect.value);
-  const selectedLayer = layers[selectedLayerIndex];
-  const source = selectedLayer.getSource();
-  const allFeatures = source.getFeatures();
+// function isStringField(field) {
+//   const selectedLayerIndex = parseInt(layerSelect.value);
+//   const selectedLayer = layers[selectedLayerIndex];
+//   const source = selectedLayer.getSource();
+//   const allFeatures = source.getFeatures();
 
-  for (const feature of allFeatures) {
-    const properties = feature.getProperties();
-    const attributeValue = properties[field];
-    if (typeof attributeValue !== "string") {
-      return false;
-    }
-  }
-  return true;
-}
+//   for (const feature of allFeatures) {
+//     const properties = feature.getProperties();
+//     const attributeValue = properties[field];
+//     if (typeof attributeValue !== "string") {
+//       return false;
+//     }
+//   }
+//   return true;
+// }
 
 // Update operator options based on selected field
 function updateOperatorOptions() {

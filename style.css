@@ -79,8 +79,7 @@ header {
 .ol-layerswitcher {
   pointer-events: auto;
   position: absolute;
-  top: 0;
-  left: 5px;
+  left: 10px;
   width: 20%;
 }
 
