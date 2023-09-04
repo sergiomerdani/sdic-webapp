@@ -722,6 +722,28 @@ geoSearch.on("select", function (event) {
   geoSearch.clearHistory();
 });
 
+const searchBox = document.querySelector('.ol-search')
+
+searchBox.style.position = "absolute"
+searchBox.style.left = 0
+searchBox.style.display = "flex"
+searchBox.style.width = "259px"
+
+const searchWrapper = document.querySelector(".search-wrapper");
+
+
+
+searchWrapper.style.position = "relative";
+searchWrapper.style.zIndex = 1
+searchWrapper.style.top = "0px"
+searchWrapper.style.left = "5px"
+searchWrapper.style.width = "259px"
+searchWrapper.style.height = "100%"
+searchWrapper.style.display = "inline-block"
+
+searchWrapper.appendChild(searchBox);
+
+
 //________________________________________________________________________________________________________
 //Show/Hide graticule
 const toggleButton = document.getElementById("graticuleButton");
@@ -1598,13 +1620,19 @@ map.addControl(
 map.addControl(new CanvasScaleLine());
 
 // Print control
-var printControl = new PrintDialog({
+
+const printControl = new PrintDialog({
   immediate: true,
   collapsed: false,
 });
 printControl.setSize("A4");
 printControl.setOrientation("landscape");
 printControl.setMargin("5");
+
+printControl.element.click();
+console.log({
+  printControl: printControl.element,
+});
 
 map.addControl(printControl);
 printControl.on(["print", "error"], function (e) {
@@ -1642,11 +1670,28 @@ printControl.on(["print", "error"], function (e) {
   }
 });
 
-// Select the .ol-print button
+// // Select the .ol-print button
 const olPrintButton = document.querySelector(".ol-print");
 
 // Select the container where you want to append the button (assuming it's .buttons)
-const buttonsContainer = document.querySelector(".buttons");
+const buttonsContainer = document.querySelector("#printContent");
+
+const olPrintButtonEl = document.querySelector(".ol-print button");
+
+olPrintButtonEl.style.display = "inline";
+olPrintButtonEl.style.width = "100%";
+olPrintButtonEl.style.height = "100%";
+olPrintButtonEl.style.margin = 0
+olPrintButtonEl.style.opacity = 0;
+
+olPrintButton.style.display = "inline";
+olPrintButton.style.position = "absolute";
+olPrintButton.style.top = "-4px";
+olPrintButton.style.left = 0;
+olPrintButton.style.bottom = 0;
+olPrintButton.style.right = 0;
+olPrintButton.style.width = "100%";
+olPrintButton.style.height = "100%";
 
 // Append the olPrintButton to the buttonsContainer
 buttonsContainer.appendChild(olPrintButton);
@@ -1945,3 +1990,41 @@ const selectControlForm = document.querySelector(".selectControl");
 selectControlBtn.addEventListener("click", () => {
   selectControlForm.hidden = !selectControlForm.hidden;
 });
+
+const selectLayerControl = document.getElementById("selectControl")
+
+dragElement(selectLayerControl);
+
+function dragElement(elmnt) {
+  var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+  if (document.getElementById(elmnt.id + "header")) {
+    document.getElementById(elmnt.id + "header").onmousedown = dragMouseDown;
+  } else {
+    elmnt.onmousedown = dragMouseDown;
+  }
+
+  function dragMouseDown(e) {
+    e = e || window.event;
+    e.preventDefault();
+    pos3 = e.clientX;
+    pos4 = e.clientY;
+    document.onmouseup = closeDragElement;
+    document.onmousemove = elementDrag;
+  }
+
+  function elementDrag(e) {
+    e = e || window.event;
+    e.preventDefault();
+    pos1 = pos3 - e.clientX;
+    pos2 = pos4 - e.clientY;
+    pos3 = e.clientX;
+    pos4 = e.clientY;
+    elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+    elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+  }
+
+  function closeDragElement() {
+    document.onmouseup = null;
+    document.onmousemove = null;
+  }
+}

@@ -186,6 +186,9 @@ td {
   border: 1px solid #ccc;
   border-radius: 4px;
 }
+.buttons {
+  width: 100%;
+}
 
 .buttons button {
   transform: scale(1.2);
@@ -260,4 +263,17 @@ td {
 
 .selectControl input[type="button"]:hover {
   background-color: #0056b3;
+}
+
+.navbar {
+  display: flex;
+  flex-direction: column;
+  height: 250px;
+}
+#printContent {
+  position: relative;
+}
+.search-wrapper {
+  padding-top: 5px;
+  position: relative;
 }
