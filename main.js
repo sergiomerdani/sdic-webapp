@@ -722,27 +722,24 @@ geoSearch.on("select", function (event) {
   geoSearch.clearHistory();
 });
 
-const searchBox = document.querySelector('.ol-search')
+const searchBox = document.querySelector(".ol-search");
 
-searchBox.style.position = "absolute"
-searchBox.style.left = 0
-searchBox.style.display = "flex"
-searchBox.style.width = "259px"
+searchBox.style.position = "absolute";
+searchBox.style.left = 0;
+searchBox.style.display = "flex";
+searchBox.style.width = "259px";
 
 const searchWrapper = document.querySelector(".search-wrapper");
 
-
-
 searchWrapper.style.position = "relative";
-searchWrapper.style.zIndex = 1
-searchWrapper.style.top = "0px"
-searchWrapper.style.left = "5px"
-searchWrapper.style.width = "259px"
-searchWrapper.style.height = "100%"
-searchWrapper.style.display = "inline-block"
+searchWrapper.style.zIndex = 1;
+searchWrapper.style.top = "0px";
+searchWrapper.style.left = "5px";
+searchWrapper.style.width = "259px";
+searchWrapper.style.height = "100%";
+searchWrapper.style.display = "inline-block";
 
 searchWrapper.appendChild(searchBox);
-
 
 //________________________________________________________________________________________________________
 //Show/Hide graticule
@@ -1345,19 +1342,40 @@ function getInfo(event) {
               );
 
               // Iterate over the properties and add them to the form
+              const contentWrapper = document.createElement("div");
+
+              const labelWrapper = document.createElement("div");
+              const inputWrapper = document.createElement("div");
+
               propertiesToShow.forEach(function (prop) {
                 var labelElement = document.createElement("label");
                 labelElement.textContent = prop;
+                labelElement.style.paddingBottom = "7px";
+                labelElement.style.width = "auto"
 
                 var inputElement = document.createElement("input");
                 inputElement.setAttribute("readonly", "readonly");
                 inputElement.value = properties[prop];
+                inputElement.style.width = "auto"
                 // Add the label and input elements to the form container
-                formContainer.appendChild(labelElement);
-                formContainer.appendChild(inputElement);
+
+                // formContainer.appendChild(labelElement);
+                // formContainer.appendChild(inputElement);
                 var createBr = document.createElement("br");
-                formContainer.appendChild(createBr);
+                // formContainer.appendChild(createBr);
+                labelWrapper.appendChild(labelElement);
+                inputWrapper.appendChild(inputElement);
               });
+
+              contentWrapper.style.display = "flex";
+              labelWrapper.style.display = "flex";
+              labelWrapper.style.flexDirection = "column";
+              inputWrapper.style.display = "flex";
+              inputWrapper.style.flexDirection = "column";
+
+              contentWrapper.appendChild(labelWrapper);
+              contentWrapper.appendChild(inputWrapper);
+              formContainer.appendChild(contentWrapper);
 
               const existingFormContainer =
                 document.querySelector(".form-container");
@@ -1402,6 +1420,7 @@ function getXYClickListener(event) {
   getXY(event);
 }
 getInfoBtn.addEventListener("click", function () {
+  console.log("test");
   map.un("click", getXYClickListener);
   map.on("click", getInfoClickListener);
   map.removeInteraction(drawPoly);
@@ -1503,7 +1522,6 @@ function getXY(event) {
   document.getElementById("northing2").textContent =
     transformedCoordinate2[1].toFixed(2);
   // Show the modal
-  coordsModal.style.display = "block";
   // });
 }
 
@@ -1681,7 +1699,7 @@ const olPrintButtonEl = document.querySelector(".ol-print button");
 olPrintButtonEl.style.display = "inline";
 olPrintButtonEl.style.width = "100%";
 olPrintButtonEl.style.height = "100%";
-olPrintButtonEl.style.margin = 0
+olPrintButtonEl.style.margin = 0;
 olPrintButtonEl.style.opacity = 0;
 
 olPrintButton.style.display = "inline";
@@ -1991,12 +2009,15 @@ selectControlBtn.addEventListener("click", () => {
   selectControlForm.hidden = !selectControlForm.hidden;
 });
 
-const selectLayerControl = document.getElementById("selectControl")
+const selectLayerControl = document.getElementById("selectControl");
 
 dragElement(selectLayerControl);
 
 function dragElement(elmnt) {
-  var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+  var pos1 = 0,
+    pos2 = 0,
+    pos3 = 0,
+    pos4 = 0;
   if (document.getElementById(elmnt.id + "header")) {
     document.getElementById(elmnt.id + "header").onmousedown = dragMouseDown;
   } else {
@@ -2019,8 +2040,8 @@ function dragElement(elmnt) {
     pos2 = pos4 - e.clientY;
     pos3 = e.clientX;
     pos4 = e.clientY;
-    elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
-    elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+    elmnt.style.top = elmnt.offsetTop - pos2 + "px";
+    elmnt.style.left = elmnt.offsetLeft - pos1 + "px";
   }
 
   function closeDragElement() {
