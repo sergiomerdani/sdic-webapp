@@ -1423,7 +1423,6 @@ function getXYClickListener(event) {
   getXY(event);
 }
 getInfoBtn.addEventListener("click", function () {
-  console.log("test");
   map.un("click", getXYClickListener);
   map.on("click", getInfoClickListener);
   map.removeInteraction(drawPoly);
@@ -1539,6 +1538,7 @@ window.onclick = function (event) {
   }
 };
 getXYCoordsBtn.addEventListener("click", function () {
+  console.log("CLc");
   map.removeInteraction(drawPoly);
   map.removeInteraction(drawLine);
   map.removeLayer(drawnLineLayer);
