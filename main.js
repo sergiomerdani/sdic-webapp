@@ -728,7 +728,7 @@ searchBox.style.position = "absolute";
 searchBox.style.left = 0;
 searchBox.style.display = "flex";
 searchBox.style.flexDirection = "row";
-searchBox.style.flexWrap = "wrap"
+searchBox.style.flexWrap = "wrap";
 searchBox.style.width = "259px";
 searchBox.style.zIndex = 122;
 
@@ -1354,12 +1354,12 @@ function getInfo(event) {
                 var labelElement = document.createElement("label");
                 labelElement.textContent = prop;
                 labelElement.style.paddingBottom = "7px";
-                labelElement.style.width = "auto"
+                labelElement.style.width = "auto";
 
                 var inputElement = document.createElement("input");
                 inputElement.setAttribute("readonly", "readonly");
                 inputElement.value = properties[prop];
-                inputElement.style.width = "auto"
+                inputElement.style.width = "auto";
                 // Add the label and input elements to the form container
 
                 // formContainer.appendChild(labelElement);
@@ -2001,6 +2001,7 @@ function updateOperatorOptions() {
 
 // Event listener for field selection change
 fieldSelect.addEventListener("change", function () {
+  console.log("dasda");
   updateOperatorOptions();
   getAttributes();
 });
@@ -2013,14 +2014,15 @@ selectControlBtn.addEventListener("click", () => {
 });
 
 const selectLayerControl = document.getElementById("selectControl");
-
 dragElement(selectLayerControl);
+
 
 function dragElement(elmnt) {
   var pos1 = 0,
     pos2 = 0,
     pos3 = 0,
     pos4 = 0;
+
   if (document.getElementById(elmnt.id + "header")) {
     document.getElementById(elmnt.id + "header").onmousedown = dragMouseDown;
   } else {
@@ -2028,16 +2030,18 @@ function dragElement(elmnt) {
   }
 
   function dragMouseDown(e) {
-    e = e || window.event;
-    e.preventDefault();
+    if (e.target.tagName !== "SELECT" && e.target.tagName !== "INPUT") {
+      e.preventDefault();
+    }
+
     pos3 = e.clientX;
     pos4 = e.clientY;
+
     document.onmouseup = closeDragElement;
     document.onmousemove = elementDrag;
   }
 
   function elementDrag(e) {
-    e = e || window.event;
     e.preventDefault();
     pos1 = pos3 - e.clientX;
     pos2 = pos4 - e.clientY;
