@@ -680,7 +680,6 @@ const geoSearch = new SearchNominatim({
 map.addControl(geoSearch);
 
 geoSearch.on("select", function (event) {
-  console.log("on select");
   const selectedResultCoordinates = event.coordinate;
 
   // Create a temporary point feature
@@ -728,12 +727,15 @@ const searchBox = document.querySelector(".ol-search");
 searchBox.style.position = "absolute";
 searchBox.style.left = 0;
 searchBox.style.display = "flex";
+searchBox.style.flexDirection = "row";
+searchBox.style.flexWrap = "wrap"
 searchBox.style.width = "259px";
+searchBox.style.zIndex = 122;
 
 const searchWrapper = document.querySelector(".search-wrapper");
 
 searchWrapper.style.position = "relative";
-searchWrapper.style.zIndex = 1;
+searchWrapper.style.zIndex = 1222;
 searchWrapper.style.top = "5px";
 searchWrapper.style.left = "5px";
 searchWrapper.style.width = "259px";
