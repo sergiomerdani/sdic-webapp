@@ -1162,7 +1162,6 @@ const layerGroups = [asigLayers, addressSystem, ppak, shksh, ndihmaEkonomike];
 
 const onChangeCheck = function (evt) {
   const clickedLayer = evt;
-  console.log(clickedLayer.getVisible());
   const parentLayerGroup = findParentLayerGroup(clickedLayer);
 
   if (parentLayerGroup && clickedLayer.getVisible()) {
@@ -1524,6 +1523,7 @@ function getXY(event) {
   document.getElementById("northing2").textContent =
     transformedCoordinate2[1].toFixed(2);
   // Show the modal
+  coordsModal.style.display = "block";
   // });
 }
 
@@ -1538,7 +1538,6 @@ window.onclick = function (event) {
   }
 };
 getXYCoordsBtn.addEventListener("click", function () {
-  console.log("CLc");
   map.removeInteraction(drawPoly);
   map.removeInteraction(drawLine);
   map.removeLayer(drawnLineLayer);
@@ -1651,9 +1650,6 @@ printControl.setOrientation("landscape");
 printControl.setMargin("5");
 
 printControl.element.click();
-console.log({
-  printControl: printControl.element,
-});
 
 map.addControl(printControl);
 printControl.on(["print", "error"], function (e) {
@@ -2001,7 +1997,6 @@ function updateOperatorOptions() {
 
 // Event listener for field selection change
 fieldSelect.addEventListener("change", function () {
-  console.log("dasda");
   updateOperatorOptions();
   getAttributes();
 });
