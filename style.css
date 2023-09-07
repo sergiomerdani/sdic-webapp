@@ -64,8 +64,10 @@ header {
 /* Set the styles for the navbar */
 .navbar {
   display: flex;
+  flex-direction: column;
   background-color: #dce5e7;
-  padding: 10px;
+  padding-left: 10px;
+  height: 250px;
 }
 
 .ol-search {
@@ -265,11 +267,6 @@ td {
   background-color: #0056b3;
 }
 
-.navbar {
-  display: flex;
-  flex-direction: column;
-  height: 250px;
-}
 #printContent {
   position: relative;
 }
