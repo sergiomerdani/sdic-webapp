@@ -55,6 +55,9 @@ import ol_control_Legend from "ol-ext/control/Legend";
 import ol_legend_Legend from "ol-ext/legend/Legend";
 import { jsPDF } from "jspdf";
 import SelectControl from "ol-ext/control/Select";
+import { WMTSCapabilities } from "ol/format";
+import { optionsFromCapabilities } from "ol/source/WMTS";
+import WMTS from "ol/source/WMTS";
 
 proj4.defs(
   "EPSG:6870",
@@ -216,20 +219,37 @@ const cartoDBBaseLayer = new TileLayer({
   displayInLayerSwitcher: true,
 });
 
-const orthoPhoto = new Tile({
-  source: new TileWMS({
-    url: "https://geoportal.asig.gov.al/service/wmts?request=GetCapabilities",
-    params: { LAYERS: "orthophoto_2015:OrthoImagery_20cm" },
-  }),
+let baseLayerGroup;
+var wmts_parser = new WMTSCapabilities();
 
-  visible: false,
-  baseLayer: true,
-  title: "Ortho_20cm",
-  baseLayer: true,
-  attributions:
-    '<a href="https://asig.gov.al/copyright/">ASIG contributors</a>',
-  displayInLayerSwitcher: true,
-});
+fetch("https://geoportal.asig.gov.al/service/wmts?request=getCapabilities")
+  .then(function (response) {
+    return response.text();
+  })
+  .then(function (text) {
+    var result = wmts_parser.read(text);
+    var opt_ortho_2015_20 = optionsFromCapabilities(result, {
+      layer: "orthophoto_2015:OrthoImagery_20cm",
+      matrixSet: "EPSG:6870",
+    });
+
+    const ortho = new Tile({
+      name: "Ortofoto 2015 20cm",
+      shortName: "2015 20cm",
+      visible: false,
+      source: new WMTS(opt_ortho_2015_20),
+      baseLayer: true,
+      displayInLayerSwitcher: true,
+    });
+
+    baseLayerGroup.getLayers().push(ortho);
+    // Now you can use the 'ortho' variable outside the fetch scope
+    // For example, you can access it here or in any other part of your code
+  })
+
+  .catch(function (error) {
+    // Handle errors if necessary
+  });
 
 const albBorders = new Tile({
   source: new TileWMS({
@@ -586,13 +606,14 @@ const roadsAdr = new Tile({
   displayInLayerSwitcher: true,
 });
 
-const baseLayerGroup = new LayerGroup({
-  layers: [orthoPhoto, cartoDBBaseLayer, bingMaps, osmMap],
+baseLayerGroup = new LayerGroup({
+  layers: [cartoDBBaseLayer, bingMaps, osmMap],
   title: "Base Layers",
   information:
     "Këto shtresa shtresat bazë të hartës të cilat mund të aktivizohen veç e veç",
   displayInLayerSwitcher: true,
 });
+
 const asigLayers = new LayerGroup({
   layers: [
     albBorders,
@@ -657,6 +678,7 @@ const map = new Map({
     zoom: 5,
   }),
 });
+// map.addLayer(ortho);
 
 // Creating vectorSource to store layers
 const vectorSource = new VectorSource();
@@ -2010,7 +2032,6 @@ selectControlBtn.addEventListener("click", () => {
 
 const selectLayerControl = document.getElementById("selectControl");
 dragElement(selectLayerControl);
-
 
 function dragElement(elmnt) {
   var pos1 = 0,
