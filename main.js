@@ -116,48 +116,6 @@ const mousePositionControl = new MousePosition({
   className: "custom-mouse-position",
 });
 
-//ScaleLine Control
-// const scaleLineControl = new ScaleLine({
-//   minWidth: 200,
-//   units: "metric",
-//   bar: true,
-//   steps: 6,
-//   // text: true,
-//   className: "ol-scale-bar",
-// });
-
-//OverView Map Control
-// const overViewMap = new OverviewMap({
-//   collapsed: false,
-//   collapsible: true,
-//   rotateWithView: true,
-//   view: new View({
-//     center: krgjshCenter,
-//     zoom: 16,
-//     projection: "EPSG:6870",
-//   }),
-//   layers: [
-//     new Tile({
-//       source: new OSM(),
-//     }),
-//   ],
-// });
-
-// Create a container element for the static content
-// const staticContent = document.createElement("div");
-// staticContent.innerHTML = "Overview Map";
-
-// // Style the container element with CSS
-// staticContent.style.position = "absolute";
-// staticContent.style.top = "10px";
-// staticContent.style.left = "25px";
-// staticContent.style.color = "Black";
-// staticContent.style.fontSize = "16px";
-// staticContent.style.backgroundColor = "white";
-
-// Add the container element to the map's overlay container
-// overViewMap.getOverviewMap().getOverlayContainer().appendChild(staticContent);
-
 //Rotate COntrol
 const rotate = new Rotate();
 
@@ -318,16 +276,6 @@ const shkshInstitucionet = new Tile({
   displayInLayerSwitcher: true,
 });
 
-const shkshInstitucionetVector = new VectorLayer({
-  source: new VectorSource({
-    url: "http://192.168.2.177:8080/geoserver/shksh/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=shksh%3ASHKSH_Institucionet&maxFeatures=5000&outputFormat=application/json",
-    format: new GeoJSON(),
-    attributions: "@geoserver",
-  }),
-  title: "SHKSH Institucionet Vector",
-  opacity: 0,
-});
-
 const shkshSherbimet = new Tile({
   source: new TileWMS({
     url: "http://192.168.2.177:8080/geoserver/shksh/wms",
@@ -340,16 +288,6 @@ const shkshSherbimet = new Tile({
   title: "SHKSH Sherbimet",
   information: "Kufiri i tokësor i republikës së Shqipërisë",
   displayInLayerSwitcher: true,
-});
-
-const shkshSherbimetVector = new VectorLayer({
-  source: new VectorSource({
-    url: "http://192.168.2.177:8080/geoserver/shksh/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=shksh%3ASHKSH_Sherbimet&maxFeatures=5000&outputFormat=application/json",
-    format: new GeoJSON(),
-    attributions: "@geoserver",
-  }),
-  title: "SHKSH Sherbimet Vector",
-  opacity: 0,
 });
 
 const unicefRegion = new Tile({
@@ -366,16 +304,6 @@ const unicefRegion = new Tile({
   displayInLayerSwitcher: true,
 });
 
-const unicefRegionVector = new VectorLayer({
-  source: new VectorSource({
-    url: "http://192.168.2.177:8080/geoserver/shksh/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=shksh%3AUNICEF_Region&maxFeatures=5000&outputFormat=application/json",
-    format: new GeoJSON(),
-    attributions: "@geoserver",
-  }),
-  title: "Unicef Region Vector",
-  opacity: 0,
-});
-
 const shkshRasteAktive = new Tile({
   source: new TileWMS({
     url: "http://192.168.2.177:8080/geoserver/shksh/wms",
@@ -388,16 +316,6 @@ const shkshRasteAktive = new Tile({
   title: "SHKSH Rastet Aktive",
   information: "Kufiri i tokësor i republikës së Shqipërisë",
   displayInLayerSwitcher: true,
-});
-
-const shkshRasteAktiveVector = new VectorLayer({
-  source: new VectorSource({
-    url: "http://192.168.2.177:8080/geoserver/shksh/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=shksh%3ASHKSH_Rastet_Aktive&maxFeatures=5000&outputFormat=application/json",
-    format: new GeoJSON(),
-    attributions: "@geoserver",
-  }),
-  title: "SHKSH Rastet Aktive Vector",
-  opacity: 0,
 });
 
 const unicefInstitutionServices = new Tile({
@@ -414,16 +332,6 @@ const unicefInstitutionServices = new Tile({
   displayInLayerSwitcher: true,
 });
 
-const unicefInstitutionServicesVector = new VectorLayer({
-  source: new VectorSource({
-    url: "http://192.168.2.177:8080/geoserver/shksh/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=shksh%3AUNICEF_InstitutionServices&maxFeatures=5000&outputFormat=application/json",
-    format: new GeoJSON(),
-    attributions: "@geoserver",
-  }),
-  title: "UNICEF_ InstitutionServices Vector",
-  opacity: 0,
-});
-
 const unicefUsersService = new Tile({
   source: new TileWMS({
     url: "http://192.168.2.177:8080/geoserver/shksh/wms",
@@ -436,16 +344,6 @@ const unicefUsersService = new Tile({
   title: "UNICEF_ UsersService",
   information: "Kufiri i tokësor i republikës së Shqipërisë",
   displayInLayerSwitcher: true,
-});
-
-const unicefUsersServiceVector = new VectorLayer({
-  source: new VectorSource({
-    url: "http://192.168.2.177:8080/geoserver/shksh/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=shksh%3AUNICEF_UsersService&maxFeatures=5000&outputFormat=application/json",
-    format: new GeoJSON(),
-    attributions: "@geoserver",
-  }),
-  title: "UNICEF_ UsersService Vector",
-  opacity: 0,
 });
 
 //NDIHMA EKONOMIKE LAYERS
@@ -463,16 +361,6 @@ const perfitimeVitiFundit = new Tile({
   displayInLayerSwitcher: true,
 });
 
-const perfitimeVitiFunditVector = new VectorLayer({
-  source: new VectorSource({
-    url: "http://192.168.2.177:8080/geoserver/shksh/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=shksh%3ANE_Perfitimet_Last12Months&maxFeatures=5000&outputFormat=application/json",
-    format: new GeoJSON(),
-    attributions: "@geoserver",
-  }),
-  title: "NE Perfitimet (Viti i Fundit) Vector",
-  opacity: 0,
-});
-
 const perfitimeMuajiFundit = new Tile({
   source: new TileWMS({
     url: "http://192.168.2.177:8080/geoserver/shksh/wms",
@@ -485,16 +373,6 @@ const perfitimeMuajiFundit = new Tile({
   title: "NE Perfitimet (Muaji i Fundit)",
   information: "Kufiri i tokësor i republikës së Shqipërisë",
   displayInLayerSwitcher: true,
-});
-
-const perfitimeMuajiFunditVector = new VectorLayer({
-  source: new VectorSource({
-    url: "http://192.168.2.177:8080/geoserver/shksh/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=shksh%3ANE_Perfitimet_LastMonth&maxFeatures=5000&outputFormat=application/json",
-    format: new GeoJSON(),
-    attributions: "@geoserver",
-  }),
-  title: "NE Perfitimet (Muaji i Fundit) Vector",
-  opacity: 0,
 });
 
 //PPAK Layer
@@ -510,16 +388,6 @@ const ppakPerfitimet = new Tile({
   title: "PPAK Përfitimet",
   information: "Kufiri i tokësor i republikës së Shqipërisë",
   displayInLayerSwitcher: true,
-});
-
-const ppakPerfitimetVector = new VectorLayer({
-  source: new VectorSource({
-    url: "http://192.168.2.177:8080/geoserver/shksh/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=shksh%3APPAK_Perfitimet_Last12Months&maxFeatures=5000&outputFormat=application/json",
-    format: new GeoJSON(),
-    attributions: "@geoserver",
-  }),
-  title: "PPAK Përfitimet Vector",
-  opacity: 0,
 });
 
 const protectedAreas = new Tile({
@@ -1253,6 +1121,7 @@ const layerSwitcher = new LayerSwitcher({
   mouseover: true,
   collapsed: false,
   extent: false,
+  noScroll: false,
   onextent: (e) => {
     console.log(e);
   },
@@ -1735,43 +1604,113 @@ olPrintButton.style.height = "100%";
 // Append the olPrintButton to the buttonsContainer
 buttonsContainer.appendChild(olPrintButton);
 
-map.addLayer(perfitimeVitiFunditVector);
-map.addLayer(perfitimeMuajiFunditVector);
-map.addLayer(ppakPerfitimetVector);
-map.addLayer(unicefUsersServiceVector);
-map.addLayer(unicefInstitutionServicesVector);
-map.addLayer(shkshRasteAktiveVector);
-map.addLayer(unicefRegionVector);
-map.addLayer(shkshSherbimetVector);
-map.addLayer(shkshInstitucionetVector);
+//QUERY SELECTOR
+
+const perfitimeVitiFunditWFS =
+  "http://192.168.2.177:8080/geoserver/shksh/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=shksh%3ANE_Perfitimet_Last12Months&outputFormat=json";
+
+const perfitimeMuajiFunditWFS =
+  "http://192.168.2.177:8080/geoserver/shksh/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=shksh%3ANE_Perfitimet_LastMonth&outputFormat=json";
+
+const shkshRasteAktiveWFS =
+  "http://192.168.2.177:8080/geoserver/shksh/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=shksh%3ASHKSH_Rastet_Aktive&outputFormat=json";
+
+const shkshSherbimetWFS =
+  "http://192.168.2.177:8080/geoserver/shksh/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=shksh%3ASHKSH_Sherbimet&outputFormat=json";
+
+const shkshInstitucionetWFS =
+  "http://192.168.2.177:8080/geoserver/shksh/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=shksh%3ASHKSH_Institucionet&outputFormat=json";
+
+const ppakPerfitimetWFS =
+  "http://192.168.2.177:8080/geoserver/shksh/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=shksh%3APPAK_Perfitimet_Last12Months&outputFormat=json";
+
+async function fetchAndExtractKeys(layerURL) {
+  const uniqueValuesMap = {};
+
+  try {
+    const response = await fetch(layerURL);
+
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
+    }
+
+    const data = await response.json();
+    const features = data.features;
+
+    features.forEach((feature) => {
+      const properties = feature.properties;
+
+      for (const key in properties) {
+        if (properties.hasOwnProperty(key)) {
+          if (!uniqueValuesMap[key]) {
+            uniqueValuesMap[key] = new Set();
+          }
+          uniqueValuesMap[key].add(properties[key]);
+        }
+      }
+    });
+
+    return uniqueValuesMap;
+  } catch (error) {
+    console.error("There was a problem with the fetch operation:", error);
+    return null;
+  }
+}
+let uniqueValuesMap;
+
+async function getFields() {
+  fieldSelect.innerHTML = "";
+  attributeSelect.innerHTML = "";
+
+  let fields = [];
+  const selectedLayerIndex = parseInt(layerSelect.value);
+
+  if (selectedLayerIndex === 0) {
+    uniqueValuesMap = await fetchAndExtractKeys(perfitimeMuajiFunditWFS);
+  } else if (selectedLayerIndex === 1) {
+    uniqueValuesMap = await fetchAndExtractKeys(perfitimeVitiFunditWFS);
+  } else if (selectedLayerIndex === 2) {
+    uniqueValuesMap = await fetchAndExtractKeys(shkshRasteAktiveWFS);
+  } else if (selectedLayerIndex === 3) {
+    uniqueValuesMap = await fetchAndExtractKeys(shkshSherbimetWFS);
+  } else if (selectedLayerIndex === 4) {
+    uniqueValuesMap = await fetchAndExtractKeys(shkshInstitucionetWFS);
+  } else if (selectedLayerIndex === 5) {
+    uniqueValuesMap = await fetchAndExtractKeys(ppakPerfitimetWFS);
+  }
+
+  if (uniqueValuesMap) {
+    const allKeys = Object.keys(uniqueValuesMap);
+    const filteredKeys = allKeys.filter((key) => key !== "geometry");
+
+    filteredKeys.forEach((key) => {
+      fields.push(key);
+    });
+
+    fields.forEach((value) => {
+      const option = document.createElement("option");
+      option.value = value;
+      option.textContent = value;
+      fieldSelect.appendChild(option);
+    });
+  }
+}
 
 const layers = [
-  perfitimeVitiFunditVector,
-  perfitimeMuajiFunditVector,
-  ppakPerfitimetVector,
-  unicefUsersServiceVector,
-  unicefInstitutionServicesVector,
-  shkshRasteAktiveVector,
-  unicefRegionVector,
-  shkshSherbimetVector,
-  shkshInstitucionetVector,
-];
-
-const wmsLayers = [
-  perfitimeVitiFundit,
   perfitimeMuajiFundit,
-  ppakPerfitimet,
-  unicefUsersService,
-  unicefInstitutionServices,
+  perfitimeVitiFundit,
   shkshRasteAktive,
-  unicefRegion,
   shkshSherbimet,
   shkshInstitucionet,
+  ppakPerfitimet,
 ];
+
+// Populate the dropdown with layer names
+const layerSelect = document.getElementById("layerSelect");
 
 function addLayerToQuery() {
   layerSelect.innerHTML = "";
-  wmsLayers.forEach((wmsLayer, index) => {
+  layers.forEach((wmsLayer, index) => {
     if (wmsLayer.getVisible()) {
       const layerToAdd = layers[index];
       const option = document.createElement("option");
@@ -1782,159 +1721,88 @@ function addLayerToQuery() {
   });
 }
 
-addLayerToQuery();
-
 // Event listener for layer selection change
 layerSelect.addEventListener("change", function () {
   getFields();
+  getAttributeValues();
+  updateOperatorOptions();
 });
+
+// Function to log layer attributes to the console
+const fieldSelect = document.getElementById("fieldSelect");
+const attributeSelect = document.getElementById("attributeSelect");
 const operatorSelect = document.getElementById("operator");
 
-const attributeSelect = document.getElementById("attributeSelect");
+operatorSelect.addEventListener("change", () => {
+  const selectedField = fieldSelect.value;
+  getAttributeValues(selectedField);
+});
 
 const greaterThanOption = document.querySelector('option[value=">"]');
 const lessThanOption = document.querySelector('option[value="<"]');
 const equalOption = document.querySelector('option[value="="]');
 const likeOption = document.querySelector('option[value="LIKE"]');
-let isNumberField = true;
 
-function getAttributes() {
+async function getAttributeValues() {
   const selectedField = fieldSelect.value;
-  const selectedLayerIndex = parseInt(layerSelect.value);
-  const selectedLayer = layers[selectedLayerIndex];
-  const source = selectedLayer.getSource();
-  const allFeatures = source.getFeatures();
+  const selectedOperator = operatorSelect.value;
 
-  // Clear the attribute select dropdown
-  attributeSelect.innerHTML = "";
-  attributeSelect.style.display = "none";
-
-  // Create an array to store unique attribute values
-  const attributeValues = [];
-
-  // Determine if the selected field's attributes are numbers
-  allFeatures.forEach((feature) => {
-    const properties = feature.getProperties();
-    const attributeValue = properties[selectedField];
-    if (typeof attributeValue !== "number") {
-      isNumberField = false;
-    }
-    if (!attributeValues.includes(attributeValue)) {
-      attributeValues.push(attributeValue);
-    }
-  });
-
-  // Clear existing options and input fields
-  attributeSelect.innerHTML = "";
-  const existingInput = document.getElementById("attributeInput");
-  if (existingInput) {
-    existingInput.remove();
+  // Get the attribute input element
+  const attributeInput = document.getElementById("attributeInput");
+  if (attributeInput) {
+    attributeInput.remove(); // Remove existing input field
   }
 
-  // Check if the selected operator is "LIKE"
-  if (!isNumberField && operatorSelect.value === "LIKE") {
-    // If the operator is "LIKE", replace the attribute select dropdown with an input field
+  if (
+    selectedOperator === "LIKE" ||
+    selectedOperator === ">" ||
+    selectedOperator === "<"
+  ) {
+    // Create and display an input field for attribute value
     const input = document.createElement("input");
     input.type = "text";
     input.id = "attributeInput";
     input.placeholder = "Enter a value";
-    attributeSelect.parentNode.insertBefore(input, attributeSelect);
-  } else if (isNumberField) {
-    // If the field's attributes are numbers, replace the attribute select dropdown with an input field
-    const input = document.createElement("input");
-    input.type = "number";
-    input.id = "attributeInput";
-    input.placeholder = "Enter a number";
-    attributeSelect.parentNode.insertBefore(input, attributeSelect);
+    attributeSelect.style.display = "none"; // Hide the select field
+    attributeSelect.parentNode.insertBefore(input, attributeSelect); // Insert the input field
   } else {
-    // If the field's attributes are not numbers and the operator is not "LIKE", populate the attribute select dropdown
+    // Display the select field for attribute value
     attributeSelect.style.display = "block";
-    attributeValues.forEach((value) => {
-      const option = document.createElement("option");
-      option.value = value;
-      option.textContent = value;
-      attributeSelect.appendChild(option);
-    });
+    attributeSelect.innerHTML = "";
+
+    const uniqueValuesSet = uniqueValuesMap[selectedField];
+    if (uniqueValuesSet) {
+      const uniqueValuesArray = Array.from(uniqueValuesSet);
+
+      const emptyOption = document.createElement("option");
+      emptyOption.value = "";
+      emptyOption.textContent = "";
+      attributeSelect.appendChild(emptyOption);
+
+      uniqueValuesArray.forEach((value) => {
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = value;
+        attributeSelect.appendChild(option);
+      });
+    }
   }
 }
-const fieldSelect = document.getElementById("fieldSelect");
 
-function getFields() {
-  // Get a reference to the <select> element
-  fieldSelect.innerHTML = "";
-  // Clear the fields array
-  let fields = [];
-  const selectedLayerIndex = parseInt(layerSelect.value);
-  const selectedLayer = layers[selectedLayerIndex];
-  const source = selectedLayer.getSource();
-
-  const allFeatures = source.getFeatures();
-  const propertyValuesMap = {};
-
-  // Load features from the WFS source
-  allFeatures.forEach((feature) => {
-    const properties = feature.getProperties();
-
-    for (const key in properties) {
-      if (properties.hasOwnProperty(key)) {
-        if (!propertyValuesMap[key]) {
-          propertyValuesMap[key] = [];
-        }
-        propertyValuesMap[key].push(properties[key]);
-      }
-    }
-  });
-
-  const allKeys = Object.keys(propertyValuesMap);
-
-  // Filter out the "geometry" field
-  // const filteredKeys = allKeys.filter((key) => key !== "geometry");
-  const filteredKeys = allKeys.filter((key) => {
-    return key !== "geometry" && key !== "id";
-  });
-
-  filteredKeys.forEach((key) => {
-    fields.push(key);
-  });
-
-  // Loop through the key variable and populate the <select> with options
-  fields.forEach((value) => {
-    const option = document.createElement("option");
-    option.value = value;
-    option.textContent = value;
-    fieldSelect.appendChild(option);
-  });
-}
-
-operatorSelect.addEventListener("change", function () {
-  getAttributes();
+// Event listener for field selection change
+fieldSelect.addEventListener("change", function () {
+  const selectedField = fieldSelect.value;
+  getAttributeValues(selectedField);
+  updateOperatorOptions();
 });
 
 const filterCQL = function () {
   const selectedLayerIndex = parseInt(layerSelect.value);
   const selectedLayer = layers[selectedLayerIndex];
+
   // Check if the attribute select dropdown is hidden (number field)
   const attributeInput = document.getElementById("attributeInput");
-  let targetSource;
-  if (selectedLayer === perfitimeVitiFunditVector) {
-    targetSource = perfitimeVitiFundit.getSource();
-  } else if (selectedLayer === perfitimeMuajiFunditVector) {
-    targetSource = perfitimeMuajiFundit.getSource();
-  } else if (selectedLayer === ppakPerfitimetVector) {
-    targetSource = ppakPerfitimet.getSource();
-  } else if (selectedLayer === unicefUsersServiceVector) {
-    targetSource = unicefUsersService.getSource();
-  } else if (selectedLayer === unicefInstitutionServicesVector) {
-    targetSource = unicefInstitutionServices.getSource();
-  } else if (selectedLayer === shkshRasteAktiveVector) {
-    targetSource = shkshRasteAktive.getSource();
-  } else if (selectedLayer === unicefRegionVector) {
-    targetSource = unicefRegion.getSource();
-  } else if (selectedLayer === shkshSherbimetVector) {
-    targetSource = shkshSherbimet.getSource();
-  } else if (selectedLayer === shkshInstitucionetVector) {
-    targetSource = shkshInstitucionet.getSource();
-  }
+  let targetSource = selectedLayer.getSource();
 
   if (targetSource) {
     const params = targetSource.getParams();
@@ -1960,12 +1828,49 @@ const filterCQL = function () {
 
       const CQLFilter =
         selectedField + " " + selectedOperator + " '" + selectedAttribute + "'";
-      console.log(CQLFilter);
+
       params.CQL_FILTER = CQLFilter;
     }
     targetSource.updateParams(params);
   }
 };
+
+// Function to check if a field's attributes are numeric
+function areAttributesNumeric(selectedField) {
+  if (!selectedField || !uniqueValuesMap[selectedField]) {
+    return false;
+  }
+  const uniqueValuesSet = uniqueValuesMap[selectedField];
+  for (const value of uniqueValuesSet) {
+    if (isNaN(parseFloat(value))) {
+      return false;
+    }
+  }
+  return true;
+}
+
+// Update operator options based on selected field
+function updateOperatorOptions() {
+  const selectedField = fieldSelect.value;
+  greaterThanOption.disabled = !areAttributesNumeric(selectedField);
+  lessThanOption.disabled = !areAttributesNumeric(selectedField);
+  likeOption.disabled = areAttributesNumeric(selectedField);
+}
+
+// Event listener for field selection change
+fieldSelect.addEventListener("change", function () {
+  updateOperatorOptions();
+  getAttributeValues();
+});
+
+const selectControlBtn = document.querySelector("#selectControlButton");
+const selectControlForm = document.querySelector(".selectControl");
+
+selectControlBtn.addEventListener("click", () => {
+  selectControlForm.hidden = !selectControlForm.hidden;
+  addLayerToQuery();
+  getFields();
+});
 
 const sumbmitBtn = document.getElementById("sumbmitBtn");
 
@@ -1974,62 +1879,7 @@ sumbmitBtn.addEventListener("click", (e) => {
   filterCQL();
 });
 
-// Function to check if a field's attributes are numeric
-function isNumericField(field) {
-  const selectedLayerIndex = parseInt(layerSelect.value);
-  const selectedLayer = layers[selectedLayerIndex];
-  const source = selectedLayer.getSource();
-  const allFeatures = source.getFeatures();
-
-  for (const feature of allFeatures) {
-    const properties = feature.getProperties();
-    const attributeValue = properties[field];
-    if (typeof attributeValue !== "number") {
-      return false;
-    }
-  }
-  return true;
-}
-
-// Function to check if a field's attributes are string
-// function isStringField(field) {
-//   const selectedLayerIndex = parseInt(layerSelect.value);
-//   const selectedLayer = layers[selectedLayerIndex];
-//   const source = selectedLayer.getSource();
-//   const allFeatures = source.getFeatures();
-
-//   for (const feature of allFeatures) {
-//     const properties = feature.getProperties();
-//     const attributeValue = properties[field];
-//     if (typeof attributeValue !== "string") {
-//       return false;
-//     }
-//   }
-//   return true;
-// }
-
-// Update operator options based on selected field
-function updateOperatorOptions() {
-  const selectedField = fieldSelect.value;
-
-  greaterThanOption.disabled = !isNumericField(selectedField);
-  lessThanOption.disabled = !isNumericField(selectedField);
-  likeOption.disabled = isNumericField(selectedField);
-}
-
-// Event listener for field selection change
-fieldSelect.addEventListener("change", function () {
-  updateOperatorOptions();
-  getAttributes();
-});
-
-const selectControlBtn = document.querySelector("#selectControlButton");
-const selectControlForm = document.querySelector(".selectControl");
-
-selectControlBtn.addEventListener("click", () => {
-  selectControlForm.hidden = !selectControlForm.hidden;
-});
-
+//Drag Query Selector
 const selectLayerControl = document.getElementById("selectControl");
 dragElement(selectLayerControl);
 
