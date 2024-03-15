@@ -59,6 +59,11 @@ import { WMTSCapabilities } from "ol/format";
 import { optionsFromCapabilities } from "ol/source/WMTS";
 import WMTS from "ol/source/WMTS";
 
+//URLs
+const asigWmsUrl =
+  "https://geoportal.asig.gov.al/service/kufinjt_e_njesive_administrative/wms?request=GetCapabilities";
+
+const asigWmsService = "https://geoportal.asig.gov.al/service";
 proj4.defs(
   "EPSG:6870",
   "+proj=tmerc +lat_0=0 +lon_0=20 +k=1 +x_0=500000 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs"
@@ -211,7 +216,7 @@ fetch("https://geoportal.asig.gov.al/service/wmts?request=getCapabilities")
 
 const albBorders = new Tile({
   source: new TileWMS({
-    url: "https://geoportal.asig.gov.al/service/kufinjt_e_njesive_administrative/wms?request=GetCapabilities",
+    url: asigWmsUrl,
     params: {
       LAYERS: "rendi_1_kufi_shteteror",
       VERSION: "1.1.0",
@@ -225,7 +230,7 @@ const albBorders = new Tile({
 
 const albRegions = new Tile({
   source: new TileWMS({
-    url: "https://geoportal.asig.gov.al/service/kufinjt_e_njesive_administrative/wms?request=GetCapabilities",
+    url: asigWmsUrl,
     params: {
       LAYERS: "rendi_2_kufi_qarku_vkm360",
       VERSION: "1.1.0",
@@ -239,7 +244,7 @@ const albRegions = new Tile({
 
 const municipalities = new Tile({
   source: new TileWMS({
-    url: "https://geoportal.asig.gov.al/service/kufinjt_e_njesive_administrative/wms?request=GetCapabilities",
+    url: asigWmsUrl,
     params: {
       LAYERS: "rendi_3_kufi_bashki_vkm360_1",
       VERSION: "1.1.0",
@@ -264,7 +269,7 @@ const country = new Style({
 //SHKSH LAYERS
 const shkshInstitucionet = new Tile({
   source: new TileWMS({
-    url: "http://192.168.2.177:8080/geoserver/shksh/wms",
+    url: "http://192.168.2.177:8081/geoserver/shksh/wms",
     params: {
       LAYERS: "shksh:SHKSH_Institucionet",
       VERSION: "1.1.0",
@@ -278,7 +283,7 @@ const shkshInstitucionet = new Tile({
 
 const shkshSherbimet = new Tile({
   source: new TileWMS({
-    url: "http://192.168.2.177:8080/geoserver/shksh/wms",
+    url: "http://192.168.2.177:8081/geoserver/shksh/wms",
     params: {
       LAYERS: "shksh:SHKSH_Sherbimet",
       VERSION: "1.1.0",
@@ -292,7 +297,7 @@ const shkshSherbimet = new Tile({
 
 const unicefRegion = new Tile({
   source: new TileWMS({
-    url: "http://192.168.2.177:8080/geoserver/shksh/wms",
+    url: "http://192.168.2.177:8081/geoserver/shksh/wms",
     params: {
       LAYERS: "shksh:UNICEF_Region",
       VERSION: "1.1.0",
@@ -306,7 +311,7 @@ const unicefRegion = new Tile({
 
 const shkshRasteAktive = new Tile({
   source: new TileWMS({
-    url: "http://192.168.2.177:8080/geoserver/shksh/wms",
+    url: "http://192.168.2.177:8081/geoserver/shksh/wms",
     params: {
       LAYERS: "shksh:SHKSH_Rastet_Aktive",
       VERSION: "1.1.0",
@@ -320,7 +325,7 @@ const shkshRasteAktive = new Tile({
 
 const unicefInstitutionServices = new Tile({
   source: new TileWMS({
-    url: "http://192.168.2.177:8080/geoserver/shksh/wms",
+    url: "http://192.168.2.177:8081/geoserver/shksh/wms",
     params: {
       LAYERS: "shksh:UNICEF_InstitutionServices",
       VERSION: "1.1.0",
@@ -334,7 +339,7 @@ const unicefInstitutionServices = new Tile({
 
 const unicefUsersService = new Tile({
   source: new TileWMS({
-    url: "http://192.168.2.177:8080/geoserver/shksh/wms",
+    url: "http://192.168.2.177:8081/geoserver/shksh/wms",
     params: {
       LAYERS: "shksh:UNICEF_UsersService",
       VERSION: "1.1.0",
@@ -349,7 +354,7 @@ const unicefUsersService = new Tile({
 //NDIHMA EKONOMIKE LAYERS
 const perfitimeVitiFundit = new Tile({
   source: new TileWMS({
-    url: "http://192.168.2.177:8080/geoserver/shksh/wms",
+    url: "http://192.168.2.177:8081/geoserver/shksh/wms",
     params: {
       LAYERS: "shksh:NE_Perfitimet_Last12Months",
       VERSION: "1.1.0",
@@ -363,7 +368,7 @@ const perfitimeVitiFundit = new Tile({
 
 const perfitimeMuajiFundit = new Tile({
   source: new TileWMS({
-    url: "http://192.168.2.177:8080/geoserver/shksh/wms",
+    url: "http://192.168.2.177:8081/geoserver/shksh/wms",
     params: {
       LAYERS: "shksh:NE_Perfitimet_LastMonth",
       VERSION: "1.1.0",
@@ -378,7 +383,7 @@ const perfitimeMuajiFundit = new Tile({
 //PPAK Layer
 const ppakPerfitimet = new Tile({
   source: new TileWMS({
-    url: "http://192.168.2.177:8080/geoserver/shksh/wms",
+    url: "http://192.168.2.177:8081/geoserver/shksh/wms",
     params: {
       LAYERS: "shksh:PPAK_Perfitimet_Last12Months",
       VERSION: "1.1.0",
@@ -390,9 +395,10 @@ const ppakPerfitimet = new Tile({
   displayInLayerSwitcher: true,
 });
 
+//ASIG Layers
 const protectedAreas = new Tile({
   source: new TileWMS({
-    url: "https://geoportal.asig.gov.al/service/akzm/wms",
+    url: asigWmsService + "/akzm/wms",
     params: {
       LAYERS: "zonat_e_mbrojtura_natyrore_06042023",
       VERSION: "1.1.0",
@@ -406,7 +412,7 @@ const protectedAreas = new Tile({
 
 const naturalMonuments = new Tile({
   source: new TileWMS({
-    url: "https://geoportal.asig.gov.al/service/akzm/wms",
+    url: asigWmsService + "/akzm/wms",
     params: {
       LAYERS: "monumentet_natyrore_07032023",
       VERSION: "1.1.0",
@@ -420,7 +426,7 @@ const naturalMonuments = new Tile({
 
 const roadNetwork = new Tile({
   source: new TileWMS({
-    url: "https://geoportal.asig.gov.al/service/instituti_transportiti/wms",
+    url: asigWmsService + "/instituti_transportiti/wms",
     params: {
       LAYERS: "infrastruktura_rrugore_utm",
       VERSION: "1.1.0",
@@ -432,9 +438,10 @@ const roadNetwork = new Tile({
   displayInLayerSwitcher: true,
 });
 
+//Addresses System
 const buildingsAdr = new Tile({
   source: new TileWMS({
-    url: "https://geoportal.asig.gov.al/service/adresar/wms",
+    url: asigWmsService + "/adresar/wms",
     params: {
       LAYERS: "adr_ndertese",
       VERSION: "1.1.0",
@@ -448,7 +455,7 @@ const buildingsAdr = new Tile({
 
 const enumerationAdr = new Tile({
   source: new TileWMS({
-    url: "https://geoportal.asig.gov.al/service/adresar/wms",
+    url: asigWmsService + "/adresar/wms",
     params: {
       LAYERS: "adr_numertim",
       VERSION: "1.1.0",
@@ -462,7 +469,7 @@ const enumerationAdr = new Tile({
 
 const roadsAdr = new Tile({
   source: new TileWMS({
-    url: "https://geoportal.asig.gov.al/service/adresar/wms",
+    url: asigWmsService + "/adresar/wms",
     params: {
       LAYERS: "adr_rruge",
       VERSION: "1.1.0",
@@ -474,6 +481,7 @@ const roadsAdr = new Tile({
   displayInLayerSwitcher: true,
 });
 
+//Layer Groups
 baseLayerGroup = new LayerGroup({
   layers: [cartoDBBaseLayer, bingMaps, osmMap],
   title: "Base Layers",
@@ -546,7 +554,6 @@ const map = new Map({
     zoom: 5,
   }),
 });
-// map.addLayer(ortho);
 
 // Creating vectorSource to store layers
 const vectorSource = new VectorSource();
@@ -1188,6 +1195,10 @@ function getInfo(event) {
   }
 
   // Helper function to get the features of a layer and show the form if features exist
+  // Assuming you have an array with image filenames
+
+  let currentImageIndex = 0;
+
   function getLayerFeatures(layer) {
     const url = layer
       .getSource()
@@ -1207,34 +1218,28 @@ function getInfo(event) {
           var features = data.features;
 
           if (features && features.length > 0) {
-            // Clear the existing form container before appending new data
-
-            features.forEach((feature) => {
+            features.forEach((feature, index) => {
               var properties = feature.properties;
 
-              // Create the form container
               var formContainer = document.createElement("div");
               formContainer.classList.add("form-container-el");
-              // Add the header with its value to the form container
+
               var headerElement = document.createElement("div");
               headerElement.classList.add("form-header");
-              const layerTitle = getLayerTitle(layer); // Get the title of the layer
+              const layerTitle = getLayerTitle(layer);
               if (layerTitle) {
-                headerElement.textContent = layerTitle; // Add the layer title to the header
+                headerElement.textContent = layerTitle;
               }
               formContainer.appendChild(headerElement);
 
-              // Add a line (horizontal rule) below the header
               var hrElement = document.createElement("hr");
               formContainer.appendChild(hrElement);
 
-              // Limit the number of properties to show
               var propertiesToShow = Object.keys(properties).slice(
                 0,
                 maxPropertiesToShow
               );
 
-              // Iterate over the properties and add them to the form
               const contentWrapper = document.createElement("div");
 
               const labelWrapper = document.createElement("div");
@@ -1250,12 +1255,8 @@ function getInfo(event) {
                 inputElement.setAttribute("readonly", "readonly");
                 inputElement.value = properties[prop];
                 inputElement.style.width = "auto";
-                // Add the label and input elements to the form container
 
-                // formContainer.appendChild(labelElement);
-                // formContainer.appendChild(inputElement);
                 var createBr = document.createElement("br");
-                // formContainer.appendChild(createBr);
                 labelWrapper.appendChild(labelElement);
                 inputWrapper.appendChild(inputElement);
               });
@@ -1268,25 +1269,95 @@ function getInfo(event) {
 
               contentWrapper.appendChild(labelWrapper);
               contentWrapper.appendChild(inputWrapper);
+              console.log(layerTitle === "shkshInstitucionet");
+              // Check if the layer title is "shkshInstitucionet"
+              if (layerTitle === "SHKSH Institucionet") {
+                // Add a new row for inserting images at the end
+                var insertImagesLabel = document.createElement("label");
+                insertImagesLabel.textContent = "Insert images";
+                insertImagesLabel.style.paddingBottom = "7px";
+                insertImagesLabel.style.width = "auto";
+
+                var insertImagesInput = document.createElement("input");
+                insertImagesInput.setAttribute("type", "file");
+                insertImagesInput.setAttribute("multiple", "multiple"); // Allow multiple file selection
+                insertImagesInput.style.width = "auto";
+
+                labelWrapper.appendChild(insertImagesLabel);
+                inputWrapper.appendChild(insertImagesInput);
+
+                // Add event listener for file input change
+                insertImagesInput.addEventListener("change", function (event) {
+                  const files = event.target.files;
+                  // Add your logic to handle the selected files here
+                  console.log("Selected files:", files);
+                });
+              }
+
               formContainer.appendChild(contentWrapper);
+
+              // Display images at the end only for "shkshInstitucionet" layer
+              if (layerTitle === "SHKSH Institucionet") {
+                var imageWrapper = document.createElement("div");
+                imageWrapper.classList.add("image-wrapper");
+
+                var imageElement = document.createElement("img");
+                imageElement.setAttribute(
+                  "src",
+                  `./images/image_${currentImageIndex}.jpg`
+                );
+                imageElement.style.maxWidth = "260px";
+                imageElement.style.maxHeight = "170px";
+
+                var prevImageButton = document.createElement("button");
+                prevImageButton.textContent = "Previous";
+                prevImageButton.addEventListener("click", function () {
+                  navigateImage("prev");
+                });
+
+                var nextImageButton = document.createElement("button");
+                nextImageButton.textContent = "Next";
+                nextImageButton.addEventListener("click", function () {
+                  navigateImage("next");
+                });
+
+                imageWrapper.appendChild(prevImageButton);
+                imageWrapper.appendChild(imageElement);
+                imageWrapper.appendChild(nextImageButton);
+
+                formContainer.appendChild(imageWrapper);
+
+                function navigateImage(direction) {
+                  // Assuming you have a total of 100 images
+                  const totalImages = 100;
+
+                  if (direction === "prev") {
+                    currentImageIndex =
+                      (currentImageIndex - 1 + totalImages) % totalImages;
+                  } else if (direction === "next") {
+                    currentImageIndex = (currentImageIndex + 1) % totalImages;
+                  }
+
+                  // Update the source of the image element
+                  imageElement.setAttribute(
+                    "src",
+                    `./images/image_${currentImageIndex}.jpg`
+                  );
+                }
+              }
 
               const existingFormContainer =
                 document.querySelector(".form-container");
               existingFormContainer.innerHTML = "";
-              // Append the form container to the existing container
               existingFormContainer.appendChild(formContainer);
-
-              // Show the form container
               formContainer.style.display = "block";
               existingFormContainer.style.display = "block";
             });
           } else {
-            // If the layer has no features, try the next layer
             const nextLayerIndex = visibleLayers.indexOf(layer) + 1;
             if (nextLayerIndex < visibleLayers.length) {
               getLayerFeatures(visibleLayers[nextLayerIndex]);
             } else {
-              // If no layers have features, show a message or hide the form container
               const formContainer = document.querySelector(".form-container");
               formContainer.style.display = "none";
             }
@@ -1605,24 +1676,23 @@ olPrintButton.style.height = "100%";
 buttonsContainer.appendChild(olPrintButton);
 
 //QUERY SELECTOR
-
 const perfitimeVitiFunditWFS =
-  "http://192.168.2.177:8080/geoserver/shksh/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=shksh%3ANE_Perfitimet_Last12Months&outputFormat=json";
+  "http://192.168.2.177:8081/geoserver/shksh/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=shksh%3ANE_Perfitimet_Last12Months&outputFormat=json";
 
 const perfitimeMuajiFunditWFS =
-  "http://192.168.2.177:8080/geoserver/shksh/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=shksh%3ANE_Perfitimet_LastMonth&outputFormat=json";
+  "http://192.168.2.177:8081/geoserver/shksh/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=shksh%3ANE_Perfitimet_LastMonth&outputFormat=json";
 
 const shkshRasteAktiveWFS =
-  "http://192.168.2.177:8080/geoserver/shksh/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=shksh%3ASHKSH_Rastet_Aktive&outputFormat=json";
+  "http://192.168.2.177:8081/geoserver/shksh/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=shksh%3ASHKSH_Rastet_Aktive&outputFormat=json";
 
 const shkshSherbimetWFS =
-  "http://192.168.2.177:8080/geoserver/shksh/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=shksh%3ASHKSH_Sherbimet&outputFormat=json";
+  "http://192.168.2.177:8081/geoserver/shksh/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=shksh%3ASHKSH_Sherbimet&outputFormat=json";
 
 const shkshInstitucionetWFS =
-  "http://192.168.2.177:8080/geoserver/shksh/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=shksh%3ASHKSH_Institucionet&outputFormat=json";
+  "http://192.168.2.177:8081/geoserver/shksh/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=shksh%3ASHKSH_Institucionet&outputFormat=json";
 
 const ppakPerfitimetWFS =
-  "http://192.168.2.177:8080/geoserver/shksh/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=shksh%3APPAK_Perfitimet_Last12Months&outputFormat=json";
+  "http://192.168.2.177:8081/geoserver/shksh/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=shksh%3APPAK_Perfitimet_Last12Months&outputFormat=json";
 
 async function fetchAndExtractKeys(layerURL) {
   const uniqueValuesMap = {};
