@@ -64,6 +64,8 @@ const asigWmsUrl =
   "https://geoportal.asig.gov.al/service/kufinjt_e_njesive_administrative/wms?request=GetCapabilities";
 
 const asigWmsService = "https://geoportal.asig.gov.al/service";
+
+const geoserverUrl = "http://localhost:8080/geoserver/test/wms";
 proj4.defs(
   "EPSG:6870",
   "+proj=tmerc +lat_0=0 +lon_0=20 +k=1 +x_0=500000 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs"
@@ -214,48 +216,6 @@ fetch("https://geoportal.asig.gov.al/service/wmts?request=getCapabilities")
     // Handle errors if necessary
   });
 
-const albBorders = new Tile({
-  source: new TileWMS({
-    url: asigWmsUrl,
-    params: {
-      LAYERS: "rendi_1_kufi_shteteror",
-      VERSION: "1.1.0",
-    },
-  }),
-  visible: false,
-  title: "Kufi Shteteror",
-  information: "Kufiri i tokësor i republikës së Shqipërisë",
-  displayInLayerSwitcher: true,
-});
-
-const albRegions = new Tile({
-  source: new TileWMS({
-    url: asigWmsUrl,
-    params: {
-      LAYERS: "rendi_2_kufi_qarku_vkm360",
-      VERSION: "1.1.0",
-    },
-  }),
-  visible: false,
-  title: "Qark",
-  information: "Kufiri i tokësor i republikës së Shqipërisë",
-  displayInLayerSwitcher: true,
-});
-
-const municipalities = new Tile({
-  source: new TileWMS({
-    url: asigWmsUrl,
-    params: {
-      LAYERS: "rendi_3_kufi_bashki_vkm360_1",
-      VERSION: "1.1.0",
-    },
-  }),
-  visible: false,
-  title: "Bashki",
-  information: "Kufiri i tokësor i republikës së Shqipërisë",
-  displayInLayerSwitcher: true,
-});
-
 const country = new Style({
   stroke: new Stroke({
     color: "gray",
@@ -266,131 +226,217 @@ const country = new Style({
   }),
 });
 
-//SHKSH LAYERS
-const shkshInstitucionet = new Tile({
+//BIODIVERSITY PROTECTION AND CONSERVATION
+const illegalPoaching = new Tile({
   source: new TileWMS({
-    url: "http://192.168.2.177:8081/geoserver/shksh/wms",
+    url: geoserverUrl,
     params: {
-      LAYERS: "shksh:SHKSH_Institucionet",
+      LAYERS: "test:illegal_poaching",
       VERSION: "1.1.0",
     },
   }),
   visible: false,
-  title: "SHKSH Institucionet",
+  title: "Illegal Poaching",
   information: "Kufiri i tokësor i republikës së Shqipërisë",
   displayInLayerSwitcher: true,
 });
 
-const shkshSherbimet = new Tile({
+const wildlifeTracking = new Tile({
   source: new TileWMS({
-    url: "http://192.168.2.177:8081/geoserver/shksh/wms",
+    url: geoserverUrl,
     params: {
-      LAYERS: "shksh:SHKSH_Sherbimet",
-      VERSION: "1.1.0",
-    },
-  }),
-  visible: false,
-  title: "SHKSH Sherbimet",
-  information: "Kufiri i tokësor i republikës së Shqipërisë",
-  displayInLayerSwitcher: true,
-});
-
-const unicefRegion = new Tile({
-  source: new TileWMS({
-    url: "http://192.168.2.177:8081/geoserver/shksh/wms",
-    params: {
-      LAYERS: "shksh:UNICEF_Region",
-      VERSION: "1.1.0",
-    },
-  }),
-  visible: false,
-  title: "Unicef Region",
-  information: "Kufiri i tokësor i republikës së Shqipërisë",
-  displayInLayerSwitcher: true,
-});
-
-const shkshRasteAktive = new Tile({
-  source: new TileWMS({
-    url: "http://192.168.2.177:8081/geoserver/shksh/wms",
-    params: {
-      LAYERS: "shksh:SHKSH_Rastet_Aktive",
-      VERSION: "1.1.0",
-    },
-  }),
-  visible: false,
-  title: "SHKSH Rastet Aktive",
-  information: "Kufiri i tokësor i republikës së Shqipërisë",
-  displayInLayerSwitcher: true,
-});
-
-const unicefInstitutionServices = new Tile({
-  source: new TileWMS({
-    url: "http://192.168.2.177:8081/geoserver/shksh/wms",
-    params: {
-      LAYERS: "shksh:UNICEF_InstitutionServices",
-      VERSION: "1.1.0",
-    },
-  }),
-  visible: false,
-  title: "UNICEF_ InstitutionServices",
-  information: "Kufiri i tokësor i republikës së Shqipërisë",
-  displayInLayerSwitcher: true,
-});
-
-const unicefUsersService = new Tile({
-  source: new TileWMS({
-    url: "http://192.168.2.177:8081/geoserver/shksh/wms",
-    params: {
-      LAYERS: "shksh:UNICEF_UsersService",
-      VERSION: "1.1.0",
-    },
-  }),
-  visible: false,
-  title: "UNICEF_ UsersService",
-  information: "Kufiri i tokësor i republikës së Shqipërisë",
-  displayInLayerSwitcher: true,
-});
-
-//NDIHMA EKONOMIKE LAYERS
-const perfitimeVitiFundit = new Tile({
-  source: new TileWMS({
-    url: "http://192.168.2.177:8081/geoserver/shksh/wms",
-    params: {
-      LAYERS: "shksh:NE_Perfitimet_Last12Months",
-      VERSION: "1.1.0",
-    },
-  }),
-  visible: false,
-  title: "NE Perfitimet (Viti i Fundit)",
-  information: "Kufiri i tokësor i republikës së Shqipërisë",
-  displayInLayerSwitcher: true,
-});
-
-const perfitimeMuajiFundit = new Tile({
-  source: new TileWMS({
-    url: "http://192.168.2.177:8081/geoserver/shksh/wms",
-    params: {
-      LAYERS: "shksh:NE_Perfitimet_LastMonth",
+      LAYERS: "test:wildlife_tracking",
       VERSION: "1.1.0",
     },
   }),
   visible: true,
-  title: "NE Perfitimet (Muaji i Fundit)",
+  title: "Wildlife Tracking",
   information: "Kufiri i tokësor i republikës së Shqipërisë",
   displayInLayerSwitcher: true,
 });
 
-//PPAK Layer
-const ppakPerfitimet = new Tile({
+const plantsTracking = new Tile({
   source: new TileWMS({
-    url: "http://192.168.2.177:8081/geoserver/shksh/wms",
+    url: geoserverUrl,
     params: {
-      LAYERS: "shksh:PPAK_Perfitimet_Last12Months",
+      LAYERS: "test:plants_tracking",
       VERSION: "1.1.0",
     },
   }),
   visible: true,
-  title: "PPAK Përfitimet",
+  title: "Plants Tracking",
+  information: "Kufiri i tokësor i republikës së Shqipërisë",
+  displayInLayerSwitcher: true,
+});
+
+//PARK MANAGEMENT MONITORING LAYERS
+const wasteMangement = new Tile({
+  source: new TileWMS({
+    url: geoserverUrl,
+    params: {
+      LAYERS: "test:waste_management",
+      VERSION: "1.1.0",
+    },
+  }),
+  visible: false,
+  title: "Waste Management",
+  information: "Kufiri i tokësor i republikës së Shqipërisë",
+  displayInLayerSwitcher: true,
+});
+
+const illegalLogging = new Tile({
+  source: new TileWMS({
+    url: geoserverUrl,
+    params: {
+      LAYERS: "test:illegal_logging",
+      VERSION: "1.1.0",
+    },
+  }),
+  visible: false,
+  title: "Illegal Logging",
+  information: "Kufiri i tokësor i republikës së Shqipërisë",
+  displayInLayerSwitcher: true,
+});
+
+const erosion = new Tile({
+  source: new TileWMS({
+    url: geoserverUrl,
+    params: {
+      LAYERS: "test:erosion",
+      VERSION: "1.1.0",
+    },
+  }),
+  visible: false,
+  title: "Erosion",
+  information: "Kufiri i tokësor i republikës së Shqipërisë",
+  displayInLayerSwitcher: true,
+});
+
+const fire = new Tile({
+  source: new TileWMS({
+    url: geoserverUrl,
+    params: {
+      LAYERS: "test:fire",
+      VERSION: "1.1.0",
+    },
+  }),
+  visible: false,
+  title: "Fire",
+  information: "Kufiri i tokësor i republikës së Shqipërisë",
+  displayInLayerSwitcher: true,
+});
+
+const waterLevelMonitoring = new Tile({
+  source: new TileWMS({
+    url: geoserverUrl,
+    params: {
+      LAYERS: "test:water_level_monitoring",
+      VERSION: "1.1.0",
+    },
+  }),
+  visible: false,
+  title: "Water Level Monitoring",
+  information: "Kufiri i tokësor i republikës së Shqipërisë",
+  displayInLayerSwitcher: true,
+});
+
+//SUSTAINABLE TOURISM LAYERS
+const facilities = new Tile({
+  source: new TileWMS({
+    url: geoserverUrl,
+    params: {
+      LAYERS: "test:facilities",
+      VERSION: "1.1.0",
+    },
+  }),
+  visible: true,
+  title: "Facilities",
+  information: "Kufiri i tokësor i republikës së Shqipërisë",
+  displayInLayerSwitcher: true,
+});
+
+const infoCenter = new Tile({
+  source: new TileWMS({
+    url: geoserverUrl,
+    params: {
+      LAYERS: "test:info_center",
+      VERSION: "1.1.0",
+    },
+  }),
+  visible: true,
+  title: "Info Center",
+  information: "Kufiri i tokësor i republikës së Shqipërisë",
+  displayInLayerSwitcher: true,
+});
+
+const touristActivitiesAndSports = new Tile({
+  source: new TileWMS({
+    url: geoserverUrl,
+    params: {
+      LAYERS: "test:toursists_activities_sports",
+      VERSION: "1.1.0",
+    },
+  }),
+  visible: true,
+  title: "Tourists Activities & Sports",
+  information: "Kufiri i tokësor i republikës së Shqipërisë",
+  displayInLayerSwitcher: true,
+});
+
+const localBusinesses = new Tile({
+  source: new TileWMS({
+    url: geoserverUrl,
+    params: {
+      LAYERS: "test:local_businesses",
+      VERSION: "1.1.0",
+    },
+  }),
+  visible: true,
+  title: "Local Businesses",
+  information: "Kufiri i tokësor i republikës së Shqipërisë",
+  displayInLayerSwitcher: true,
+});
+
+const accomodation = new Tile({
+  source: new TileWMS({
+    url: geoserverUrl,
+    params: {
+      LAYERS: "test:accommodation",
+      VERSION: "1.1.0",
+    },
+  }),
+  visible: true,
+  title: "Accommodation",
+  information: "Kufiri i tokësor i republikës së Shqipërisë",
+  displayInLayerSwitcher: true,
+});
+
+//INFRASTRUCTURE
+
+const roads = new Tile({
+  source: new TileWMS({
+    url: geoserverUrl,
+    params: {
+      LAYERS: "test:roads",
+      VERSION: "1.1.0",
+    },
+  }),
+  visible: true,
+  title: "Roads",
+  information: "Kufiri i tokësor i republikës së Shqipërisë",
+  displayInLayerSwitcher: true,
+});
+
+const hikingTrails = new Tile({
+  source: new TileWMS({
+    url: geoserverUrl,
+    params: {
+      LAYERS: "test:hiking_trails",
+      VERSION: "1.1.0",
+    },
+  }),
+  visible: true,
+  title: "Hiking Trails",
   information: "Kufiri i tokësor i republikës së Shqipërisë",
   displayInLayerSwitcher: true,
 });
@@ -434,6 +480,48 @@ const roadNetwork = new Tile({
   }),
   visible: false,
   title: "Rrjeti Rrugor",
+  information: "Kufiri i tokësor i republikës së Shqipërisë",
+  displayInLayerSwitcher: true,
+});
+
+const albBorders = new Tile({
+  source: new TileWMS({
+    url: asigWmsUrl,
+    params: {
+      LAYERS: "rendi_1_kufi_shteteror",
+      VERSION: "1.1.0",
+    },
+  }),
+  visible: false,
+  title: "Kufi Shteteror",
+  information: "Kufiri i tokësor i republikës së Shqipërisë",
+  displayInLayerSwitcher: true,
+});
+
+const albRegions = new Tile({
+  source: new TileWMS({
+    url: asigWmsUrl,
+    params: {
+      LAYERS: "rendi_2_kufi_qarku_vkm360",
+      VERSION: "1.1.0",
+    },
+  }),
+  visible: false,
+  title: "Qark",
+  information: "Kufiri i tokësor i republikës së Shqipërisë",
+  displayInLayerSwitcher: true,
+});
+
+const municipalities = new Tile({
+  source: new TileWMS({
+    url: asigWmsUrl,
+    params: {
+      LAYERS: "rendi_3_kufi_bashki_vkm360_1",
+      VERSION: "1.1.0",
+    },
+  }),
+  visible: false,
+  title: "Bashki",
   information: "Kufiri i tokësor i republikës së Shqipërisë",
   displayInLayerSwitcher: true,
 });
@@ -512,28 +600,33 @@ const addressSystem = new LayerGroup({
   displayInLayerSwitcher: true,
 });
 
-const ndihmaEkonomike = new LayerGroup({
-  layers: [perfitimeMuajiFundit, perfitimeVitiFundit],
-  title: "Ndihma Ekonomike",
+const biodiversityProtectionConservation = new LayerGroup({
+  layers: [wildlifeTracking, illegalPoaching, plantsTracking],
+  title: "Biodiversity Protection",
   displayInLayerSwitcher: true,
 });
 
-const shksh = new LayerGroup({
+const parkManagementMonitoring = new LayerGroup({
+  layers: [wasteMangement, illegalLogging, erosion, fire, waterLevelMonitoring],
+  title: "Park Management Monitoring",
+  displayInLayerSwitcher: true,
+});
+
+const sustainableTourism = new LayerGroup({
   layers: [
-    shkshInstitucionet,
-    shkshSherbimet,
-    unicefRegion,
-    shkshRasteAktive,
-    unicefInstitutionServices,
-    unicefUsersService,
+    facilities,
+    infoCenter,
+    touristActivitiesAndSports,
+    localBusinesses,
+    accomodation,
   ],
-  title: "SHKSH",
+  title: "Sustainable Tourism",
   displayInLayerSwitcher: true,
 });
 
-const ppak = new LayerGroup({
-  layers: [ppakPerfitimet],
-  title: "PPAK",
+const infrastructure = new LayerGroup({
+  layers: [hikingTrails, roads],
+  title: "Infrastructure",
   displayInLayerSwitcher: true,
 });
 
@@ -544,9 +637,10 @@ const map = new Map({
     baseLayerGroup,
     asigLayers,
     addressSystem,
-    ppak,
-    shksh,
-    ndihmaEkonomike,
+    infrastructure,
+    sustainableTourism,
+    parkManagementMonitoring,
+    biodiversityProtectionConservation,
   ],
   view: new View({
     projection: krgjshProjection,
@@ -1055,7 +1149,14 @@ const displayInLayerSwitcher = (layer) => {
 //__________________________________________________________________________________________
 
 // Customizing layer switcher functions
-const layerGroups = [asigLayers, addressSystem, ppak, shksh, ndihmaEkonomike];
+const layerGroups = [
+  asigLayers,
+  addressSystem,
+  infrastructure,
+  sustainableTourism,
+  parkManagementMonitoring,
+  biodiversityProtectionConservation,
+];
 
 const onChangeCheck = function (evt) {
   const clickedLayer = evt;
@@ -1175,12 +1276,18 @@ function getInfo(event) {
   const maxPropertiesToShow = 10;
 
   // Get visible layers in the layer groups in reverse order (uppermost layer first)
-  const layerGroupOne = readGroupLayers(ndihmaEkonomike);
-  const layerGroupTwo = readGroupLayers(shksh);
-  const layerGroupThree = readGroupLayers(ppak);
+  const layerGroupOne = readGroupLayers(biodiversityProtectionConservation);
+  const layerGroupTwo = readGroupLayers(parkManagementMonitoring);
+  const layerGroupThree = readGroupLayers(sustainableTourism);
+  const layerGroupFour = readGroupLayers(infrastructure);
 
   // Get visible layers in the "Local Data" layer group in reverse order (uppermost layer first)
-  visibleLayers = [...layerGroupOne, ...layerGroupTwo, ...layerGroupThree];
+  visibleLayers = [
+    ...layerGroupOne,
+    ...layerGroupTwo,
+    ...layerGroupThree,
+    ...layerGroupFour,
+  ];
 
   if (visibleLayers.length < 1) {
     const formContainer = document.querySelector(".form-container");
@@ -1676,40 +1783,23 @@ olPrintButton.style.height = "100%";
 buttonsContainer.appendChild(olPrintButton);
 
 //QUERY SELECTOR
-const perfitimeVitiFunditWFS =
-  "http://192.168.2.177:8081/geoserver/shksh/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=shksh%3ANE_Perfitimet_Last12Months&outputFormat=json";
+const plantsTrackingWFS =
+  "http://localhost:8080/geoserver/test/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=test:plants_tracking&&outputFormat=json";
 
-const perfitimeMuajiFunditWFS =
-  "http://192.168.2.177:8081/geoserver/shksh/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=shksh%3ANE_Perfitimet_LastMonth&outputFormat=json";
-
-const shkshRasteAktiveWFS =
-  "http://192.168.2.177:8081/geoserver/shksh/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=shksh%3ASHKSH_Rastet_Aktive&outputFormat=json";
-
-const shkshSherbimetWFS =
-  "http://192.168.2.177:8081/geoserver/shksh/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=shksh%3ASHKSH_Sherbimet&outputFormat=json";
-
-const shkshInstitucionetWFS =
-  "http://192.168.2.177:8081/geoserver/shksh/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=shksh%3ASHKSH_Institucionet&outputFormat=json";
-
-const ppakPerfitimetWFS =
-  "http://192.168.2.177:8081/geoserver/shksh/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=shksh%3APPAK_Perfitimet_Last12Months&outputFormat=json";
+const wildlifeTrackingWFS =
+  "http://localhost:8080/geoserver/test/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=test%3Awildlife_tracking&&outputFormat=json";
 
 async function fetchAndExtractKeys(layerURL) {
   const uniqueValuesMap = {};
-
   try {
     const response = await fetch(layerURL);
-
     if (!response.ok) {
       throw new Error("Network response was not ok");
     }
-
     const data = await response.json();
     const features = data.features;
-
     features.forEach((feature) => {
       const properties = feature.properties;
-
       for (const key in properties) {
         if (properties.hasOwnProperty(key)) {
           if (!uniqueValuesMap[key]) {
@@ -1719,34 +1809,32 @@ async function fetchAndExtractKeys(layerURL) {
         }
       }
     });
-
     return uniqueValuesMap;
   } catch (error) {
     console.error("There was a problem with the fetch operation:", error);
     return null;
   }
 }
+
 let uniqueValuesMap;
 
 async function getFields() {
   fieldSelect.innerHTML = "";
   attributeSelect.innerHTML = "";
-
   let fields = [];
   const selectedLayerIndex = parseInt(layerSelect.value);
-
   if (selectedLayerIndex === 0) {
-    uniqueValuesMap = await fetchAndExtractKeys(perfitimeMuajiFunditWFS);
+    uniqueValuesMap = await fetchAndExtractKeys(plantsTrackingWFS);
   } else if (selectedLayerIndex === 1) {
-    uniqueValuesMap = await fetchAndExtractKeys(perfitimeVitiFunditWFS);
+    uniqueValuesMap = await fetchAndExtractKeys(wildlifeTrackingWFS);
   } else if (selectedLayerIndex === 2) {
-    uniqueValuesMap = await fetchAndExtractKeys(shkshRasteAktiveWFS);
+    uniqueValuesMap = await fetchAndExtractKeys(plantsTrackingWFS);
   } else if (selectedLayerIndex === 3) {
-    uniqueValuesMap = await fetchAndExtractKeys(shkshSherbimetWFS);
+    uniqueValuesMap = await fetchAndExtractKeys(wildlifeTrackingWFS);
   } else if (selectedLayerIndex === 4) {
-    uniqueValuesMap = await fetchAndExtractKeys(shkshInstitucionetWFS);
+    uniqueValuesMap = await fetchAndExtractKeys(plantsTrackingWFS);
   } else if (selectedLayerIndex === 5) {
-    uniqueValuesMap = await fetchAndExtractKeys(ppakPerfitimetWFS);
+    uniqueValuesMap = await fetchAndExtractKeys(wildlifeTrackingWFS);
   }
 
   if (uniqueValuesMap) {
@@ -1767,12 +1855,21 @@ async function getFields() {
 }
 
 const layers = [
-  perfitimeMuajiFundit,
-  perfitimeVitiFundit,
-  shkshRasteAktive,
-  shkshSherbimet,
-  shkshInstitucionet,
-  ppakPerfitimet,
+  wildlifeTracking,
+  illegalPoaching,
+  plantsTracking,
+  wasteMangement,
+  illegalLogging,
+  erosion,
+  fire,
+  waterLevelMonitoring,
+  facilities,
+  infoCenter,
+  touristActivitiesAndSports,
+  localBusinesses,
+  accomodation,
+  hikingTrails,
+  roads,
 ];
 
 // Populate the dropdown with layer names
