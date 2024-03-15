@@ -58,6 +58,7 @@ import SelectControl from "ol-ext/control/Select";
 import { WMTSCapabilities } from "ol/format";
 import { optionsFromCapabilities } from "ol/source/WMTS";
 import WMTS from "ol/source/WMTS";
+import Layer from "ol/layer/Layer";
 
 //URLs
 const asigWmsUrl =
@@ -1236,12 +1237,27 @@ const layerSwitcher = new LayerSwitcher({
   oninfo: (e) => {
     alert(e.values_.information);
   },
+  selection: true,
 });
 
 // const layerSwitcher = new LayerSwitcher();
 // // Add the LayerSwitcherImage control to the map
 map.addControl(layerSwitcher);
 
+let layerParams, layerWFS;
+layerSwitcher.on("select", (e) => {
+  const layer = e.layer;
+  // const source = layer.getSource();
+  // source = layer.getSource();
+  // const features = source.getFeatures();
+  // const url = source.getUrl();
+  if (layer instanceof LayerGroup) {
+    console.log("this is layer group");
+  } else if (layer instanceof Layer) {
+    layerParams = layer.values_.source.getParams().LAYERS;
+    console.log(layerParams);
+  }
+});
 const treePanelHeader = document.createElement("header");
 treePanelHeader.innerHTML = "PANELI I SHTRESAVE";
 
@@ -1709,7 +1725,6 @@ map.addControl(
 map.addControl(new CanvasScaleLine());
 
 // Print control
-
 const printControl = new PrintDialog({
   immediate: true,
   collapsed: false,
@@ -1783,12 +1798,6 @@ olPrintButton.style.height = "100%";
 buttonsContainer.appendChild(olPrintButton);
 
 //QUERY SELECTOR
-const plantsTrackingWFS =
-  "http://localhost:8080/geoserver/test/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=test:plants_tracking&&outputFormat=json";
-
-const wildlifeTrackingWFS =
-  "http://localhost:8080/geoserver/test/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=test%3Awildlife_tracking&&outputFormat=json";
-
 async function fetchAndExtractKeys(layerURL) {
   const uniqueValuesMap = {};
   try {
@@ -1823,18 +1832,9 @@ async function getFields() {
   attributeSelect.innerHTML = "";
   let fields = [];
   const selectedLayerIndex = parseInt(layerSelect.value);
-  if (selectedLayerIndex === 0) {
-    uniqueValuesMap = await fetchAndExtractKeys(plantsTrackingWFS);
-  } else if (selectedLayerIndex === 1) {
-    uniqueValuesMap = await fetchAndExtractKeys(wildlifeTrackingWFS);
-  } else if (selectedLayerIndex === 2) {
-    uniqueValuesMap = await fetchAndExtractKeys(plantsTrackingWFS);
-  } else if (selectedLayerIndex === 3) {
-    uniqueValuesMap = await fetchAndExtractKeys(wildlifeTrackingWFS);
-  } else if (selectedLayerIndex === 4) {
-    uniqueValuesMap = await fetchAndExtractKeys(plantsTrackingWFS);
-  } else if (selectedLayerIndex === 5) {
-    uniqueValuesMap = await fetchAndExtractKeys(wildlifeTrackingWFS);
+  const selectedLayer = layers[selectedLayerIndex];
+  if (selectedLayer) {
+    uniqueValuesMap = await fetchAndExtractKeys(layerWFS);
   }
 
   if (uniqueValuesMap) {
@@ -1877,6 +1877,10 @@ const layerSelect = document.getElementById("layerSelect");
 
 function addLayerToQuery() {
   layerSelect.innerHTML = "";
+  const defaultOption = document.createElement("option");
+  defaultOption.value = "";
+  defaultOption.text = "Select a layer...";
+  layerSelect.appendChild(defaultOption);
   layers.forEach((wmsLayer, index) => {
     if (wmsLayer.getVisible()) {
       const layerToAdd = layers[index];
@@ -1890,6 +1894,13 @@ function addLayerToQuery() {
 
 // Event listener for layer selection change
 layerSelect.addEventListener("change", function () {
+  const selectedIndex = this.value;
+  const selectedLayer = layers[selectedIndex];
+  const selectedLayerSource = selectedLayer.getSource();
+  layerParams = selectedLayerSource.getParams().LAYERS;
+  console.log(layerParams);
+  layerWFS = `http://localhost:8080/geoserver/test/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=${layerParams}&outputFormat=json`;
+  console.log(layerWFS);
   getFields();
   getAttributeValues();
   updateOperatorOptions();
@@ -1936,8 +1947,9 @@ async function getAttributeValues() {
     // Display the select field for attribute value
     attributeSelect.style.display = "block";
     attributeSelect.innerHTML = "";
-
-    const uniqueValuesSet = uniqueValuesMap[selectedField];
+    const uniqueValuesSet = uniqueValuesMap
+      ? uniqueValuesMap[selectedField]
+      : null;
     if (uniqueValuesSet) {
       const uniqueValuesArray = Array.from(uniqueValuesSet);
 
