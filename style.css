@@ -285,3 +285,18 @@ td {
 #second-group {
   margin-left: 10px; /* Add 10px margin to the left */
 }
+
+/* Styling for the popup */
+.ol-popup {
+  position: absolute;
+  background-color: white;
+  padding: 15px;
+  border: 1px solid #cccccc;
+  bottom: 12px;
+  left: -50px;
+  min-width: 100px;
+}
+
+.primary {
+  background-color: rgb(116, 196, 116);
+}

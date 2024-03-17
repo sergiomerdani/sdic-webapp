@@ -2165,7 +2165,7 @@ layerSwitcher.on("select", (e) => {
   // Extract workspace and layer name from the URL
   const urlParts = new URL(url);
   const layerParam = urlParts.searchParams.get("typeName"); // Get the typeName parameter from the URL
-  [workspace, layerName] = layerParam.split(":"); // Split the typeName into workspace and layerName
+  [workspace, layerName] = layerParam.split(":");
 
   // Construct the URL for DescribeFeatureType request
   const describeFeatureTypeUrl = `http://localhost:8080/geoserver/${workspace}/ows?service=WFS&version=1.0.0&request=DescribeFeatureType&typeName=${layerParam}`;
@@ -2200,7 +2200,7 @@ layerSwitcher.on("select", (e) => {
             layerType = "LineString";
           }
 
-          console.log(layerParam);
+          console.log("Layer Param: ", layerParam);
           console.log("Workspace: ", workspace);
           console.log("Geometry Type: ", geometryType);
           console.log("Geometry (layertype):", layerType);
@@ -2595,81 +2595,103 @@ getInfoButton.addEventListener("click", (e) => {
   map.removeInteraction(draw);
   getFeatureInfo();
 });
-
+let layerParam2;
 function getFeatureInfo() {
-  // Define the tolerance value (in pixels)
-  const tolerance = 5; // Adjust this value based on your requirements
-
-  // Listen for single clicks on the map
+  const tolerance = 5;
   map.on("singleclick", function (event) {
     const coordinate = event.coordinate;
-    // Get the clicked pixel
     const pixel = event.pixel;
-
-    // Check if a feature is present within the specified tolerance
+    let featureFound = false;
     map.forEachFeatureAtPixel(
       pixel,
       function (feature, layer) {
-        // Access properties of the clicked feature
-        const properties = feature.getProperties();
-        updatePopupContent(properties);
+        if (feature) {
+          featureID = feature.getId();
 
-        // Set the layer name as the title
-        const layerName = layer.get("title");
-        document.getElementById("popup-title").innerText = layerName;
+          source = layer.getSource();
+          const features = source.getFeatures();
+          const url = source.getUrl();
 
-        // Set popup position to the clicked coordinate
-        popup.setPosition(coordinate);
+          vectorLayer = layer;
+          // Extract workspace and layer name from the URL
+          const urlParts = new URL(url);
+          layerParam2 = urlParts.searchParams.get("typeName"); // Get the typeName parameter from the URL
+          [workspace, layerName] = layerParam2.split(":");
+          console.log(layerParam2);
+          featureFound = true;
+          const properties = feature.getProperties();
+          updatePopupContent(properties, layer);
+
+          const layerNameTitle = layer.get("title");
+          document.getElementById("popup-title").innerText = layerNameTitle;
+
+          popup.setPosition(coordinate);
+        }
       },
       {
-        hitTolerance: tolerance, // Apply the tolerance value
+        hitTolerance: tolerance,
       }
     );
+    if (!featureFound) {
+      popup.setPosition(undefined);
+    }
   });
 }
 
 // Function to update the content of the popup with feature properties
-function updatePopupContent(properties) {
-  // Get references to the input fields
-  const idInput = document.getElementById("id-input");
-  const nameInput = document.getElementById("name-input");
-  const statusInput = document.getElementById("status-input");
+function updatePopupContent(properties, layer) {
+  const popupContent = document.getElementById("popup-content");
+  popupContent.innerHTML = ""; // Clear previous content
 
-  // Set the value of the input fields
-  idInput.value = properties.id;
-  nameInput.value = properties.name;
-  statusInput.value = properties.status;
+  // Set the title of the popup
+  const layerNameTitle = layer.get("title");
+  document.getElementById("popup-title").innerText = layerNameTitle;
+
+  // Iterate over feature properties and generate input fields
+  for (const [key, value] of Object.entries(properties)) {
+    if (key !== "geometry") {
+      const inputField = document.createElement("div");
+      inputField.innerHTML = `
+      <div>
+        <label for="${key}-input">${key}: </label>
+        <input type="text" id="${key}" value="${value}" ${
+        key === "id" ? "readonly" : ""
+      }/>
+      </div>
+    `;
+      popupContent.appendChild(inputField);
+    }
+  }
 }
 
 //TRANSACTION TO SAVE DATA USING WFS
 // Function to save the changes to the database using WFS transaction
 function saveChanges(properties) {
   // Prepare the transaction request XML
-  var transactionXML = `
-  <wfs:Transaction service="WFS" version="1.0.0"
+  var transactionXML = `<wfs:Transaction service="WFS" version="1.0.0"
   xmlns:topp="http://www.openplans.org/topp"
   xmlns:ogc="http://www.opengis.net/ogc"
   xmlns:wfs="http://www.opengis.net/wfs">
-  <wfs:Update typeName="test:line">
-  <wfs:Property>
-  <wfs:Name>id</wfs:Name>
-  <wfs:Value>${properties.id}</wfs:Value>
-  </wfs:Property>
-    <wfs:Property>
-      <wfs:Name>name</wfs:Name>
-      <wfs:Value>${properties.name}</wfs:Value>
-    </wfs:Property>
-    <wfs:Property>
-    <wfs:Name>status</wfs:Name>
-    <wfs:Value>${properties.status}</wfs:Value>
-  </wfs:Property>
-    <ogc:Filter>
+    <wfs:Update typeName="${layerParam2}">`;
+
+  // Loop through properties and add them to the transaction XML
+  for (const [key, value] of Object.entries(properties)) {
+    // Skip updating the "id" property
+    if (key === "id") {
+      continue;
+    }
+    transactionXML += `<wfs:Property>
+        <wfs:Name>${key}</wfs:Name>
+        <wfs:Value>${value}</wfs:Value>
+      </wfs:Property>`;
+  }
+  transactionXML += `<ogc:Filter>
       <ogc:FeatureId fid="${featureID}"/>
     </ogc:Filter>
-  </wfs:Update>
-</wfs:Transaction>
-  `;
+      </wfs:Update>
+    </wfs:Transaction>`;
 
+  console.log(transactionXML);
   // Send the transaction request to the WFS server
   fetch("http://localhost:8080/geoserver/test/ows", {
     method: "POST",
@@ -2690,20 +2712,27 @@ function saveChanges(properties) {
 }
 
 // Event listener for the save button
-const saveButton = document.getElementById("saveToLayer");
-saveButton.addEventListener("click", (e) => {
-  // Get the updated properties from the input fields
-  const updatedId = document.getElementById("id-input").value;
-  const updatedName = document.getElementById("name-input").value;
-  const updateStatus = document.getElementById("status-input").value;
+const saveForm = document.getElementById("saveForm");
+saveForm.addEventListener("click", (e) => {
+  // Prevent the default form submission behavior
+  e.preventDefault();
 
-  // Create an object with the updated properties
-  const updatedProperties = {
-    id: updatedId,
-    name: updatedName,
-    status: updateStatus,
-    // Add more properties as needed
-  };
+  // Get all input fields within the form
+  const inputFields = document.querySelectorAll("#popup input[type='text']");
+  console.log(inputFields);
+  // Create an empty object to store the updated properties
+  const updatedProperties = {};
+
+  // Loop through each input field and add its value to the updatedProperties object
+  inputFields.forEach((inputField) => {
+    console.log(inputField);
+    // Get the field name (without the "input-" prefix)
+    const fieldName = inputField.id.replace("input-", "");
+    console.log(inputField.value);
+    // Add the field name and its value to the updatedProperties object
+    updatedProperties[fieldName] = inputField.value;
+    console.log(updatedProperties[fieldName]);
+  });
 
   // Call the saveChanges function to save the changes to the database
   saveChanges(updatedProperties);
@@ -2756,9 +2785,14 @@ function updatePropertyID(featureID) {
     });
 }
 
-saveToLayerButton.addEventListener("click", (e) => {
+let features;
+//Generates property ids for each feature
+saveToLayerButton.addEventListener("click", () => {
+  if (!features) {
+    return;
+  }
   // Get all features from the vector source
-  const features = source.getFeatures();
+  features = source.getFeatures();
 
   features.forEach((feature) => {
     const drawnFeatureIds = feature.getId();
