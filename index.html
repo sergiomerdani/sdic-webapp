@@ -97,6 +97,9 @@
           <button class="fa-button" id="saveToLayer" title="Save to Layer">
             <i class="fa-solid fa-floppy-disk"></i>
           </button>
+          <button class="fa-button" id="editLayer" title="Edit Layer">
+            EDIT
+          </button>
           <div class="search-wrapper"></div>
         </div>
       </div>
@@ -118,7 +121,18 @@
         </select>
         <label for="attributeSelect">Select Attribute:</label>
         <select id="attributeSelect"></select>
-        <input type="button" value="Submit" id="sumbmitBtn" />
+        <input
+          type="button"
+          value="Submit"
+          id="sumbmitBtn"
+          class="layerSelectorButton"
+        />
+        <input
+          type="button"
+          value="Reset"
+          id="resetBtn"
+          class="layerSelectorButton"
+        />
       </div>
       <div id="map">
         <div class="form-container" style="display: none">

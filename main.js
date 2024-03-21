@@ -86,8 +86,14 @@ const krgjshProjection = new Projection({
   worldExtent: [-90, -90, 90, 90],
   units: "m",
 });
+const proj32634 = new Projection({
+  code: "EPSG:32634",
+  extent: [166021.44, 0.0, 833978.56, 9329005.18],
+  worldExtent: [18.0, 0.0, 24.0, 84.0],
+});
 
 const krgjshCenter = fromLonLat([19.818913, 41.328608], "EPSG:6870");
+const utmCenter = [401170.19359, 4575960.311822];
 
 //creating attribution control for ol
 const attributionControl = new Attribution({
@@ -699,8 +705,8 @@ const map = new Map({
     biodiversityProtectionConservation,
   ],
   view: new View({
-    projection: krgjshProjection,
-    center: krgjshCenter,
+    projection: proj32634,
+    center: utmCenter,
     zoom: 5,
   }),
 });
@@ -1084,15 +1090,6 @@ function styleFunction(feature, segments, drawType, tip) {
   }
   return styles;
 }
-
-// const vectorLayer = new VectorLayer({
-//   source: vectorSource,
-//   style: function (feature) {
-//     return styleFunction(feature, showSegments.checked);
-//   },
-// });
-
-// map.addInteraction(modify);
 
 let drawLine;
 let drawPoly;
@@ -1932,13 +1929,14 @@ function addLayerToQuery() {
     }
   });
 }
-
+let layerWFS;
 // Event listener for layer selection change
 layerSelect.addEventListener("change", function () {
   const selectedIndex = this.value;
   const selectedLayer = layers[selectedIndex];
   const selectedLayerSource = selectedLayer.getSource();
-  layerParams = selectedLayerSource.getParams().LAYERS;
+  const layerParams = selectedLayerSource.getParams().LAYERS;
+  console.log(layerParams);
   layerWFS = `http://localhost:8080/geoserver/test/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=${layerParams}&outputFormat=json`;
   getFields();
   getAttributeValues();
@@ -2024,7 +2022,7 @@ const filterCQL = function () {
 
   if (targetSource) {
     const params = targetSource.getParams();
-
+    console.log(params);
     const selectedField = fieldSelect.value;
     const selectedOperator = operatorSelect.value;
     let selectedAttribute;
@@ -2046,10 +2044,26 @@ const filterCQL = function () {
 
       const CQLFilter =
         selectedField + " " + selectedOperator + " '" + selectedAttribute + "'";
+      console.log(CQLFilter);
 
       params.CQL_FILTER = CQLFilter;
     }
     targetSource.updateParams(params);
+  }
+};
+
+const resetFilter = function () {
+  const selectedLayerIndex = parseInt(layerSelect.value);
+  const selectedLayer = layers[selectedLayerIndex];
+
+  if (selectedLayer) {
+    const targetSource = selectedLayer.getSource();
+
+    if (targetSource) {
+      const params = targetSource.getParams();
+      delete params.CQL_FILTER;
+      targetSource.updateParams(params);
+    }
   }
 };
 
@@ -2091,10 +2105,16 @@ selectControlBtn.addEventListener("click", () => {
 });
 
 const sumbmitBtn = document.getElementById("sumbmitBtn");
+const resetBtn = document.getElementById("resetBtn");
 
 sumbmitBtn.addEventListener("click", (e) => {
   e.preventDefault();
   filterCQL();
+});
+
+resetBtn.addEventListener("click", (e) => {
+  e.preventDefault();
+  resetFilter();
 });
 
 //Drag Query Selector
@@ -2190,6 +2210,7 @@ layerSwitcher.on("select", (e) => {
           const typeAttribute = element.getAttribute("type");
           const [, typeName] = typeAttribute.split(":");
 
+          console.log(typeName);
           // Log the type name
           geometryType = typeName;
           if (geometryType === "PointPropertyType") {
@@ -2201,6 +2222,7 @@ layerSwitcher.on("select", (e) => {
           }
 
           console.log("Layer Param: ", layerParam);
+          console.log("Layer Name: ", layerName);
           console.log("Workspace: ", workspace);
           console.log("Geometry Type: ", geometryType);
           console.log("Geometry (layertype):", layerType);
