@@ -577,53 +577,7 @@ const wfsLayerUrl =
   "http://localhost:8080/geoserver/test/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=";
 const wfsLayerUrlEnd = "&maxFeatures=50&outputFormat=application/json";
 
-//Point Layer
-const wfsVectorSourcePoints = new VectorSource({
-  url: wfsLayerUrl + "test:points" + wfsLayerUrlEnd,
-  format: new GeoJSON(),
-  attributions: "@geoserver",
-});
-
-const wfsVectorLayerPoints = new VectorLayer({
-  source: wfsVectorSourcePoints,
-  title: "Points",
-  // crossOrigin: "anonymous",
-  // opacity: 0,
-  visible: true,
-  displayInLayerSwitcher: true,
-});
-
-//Polygon Layer
-const wfsVectorSourcePolygon = new VectorSource({
-  url: wfsLayerUrl + "test:polygon" + wfsLayerUrlEnd,
-  format: new GeoJSON(),
-  attributions: "@geoserver",
-});
-
-const wfsVectorLayerPolygon = new VectorLayer({
-  source: wfsVectorSourcePolygon,
-  title: "Polygon",
-  // crossOrigin: "anonymous",
-  // opacity: 0,
-  visible: true,
-  displayInLayerSwitcher: true,
-});
-
-//Line Layer
-const wfsVectorSourceLine = new VectorSource({
-  url: wfsLayerUrl + "test:line" + wfsLayerUrlEnd,
-  format: new GeoJSON(),
-  attributions: "@geoserver",
-});
-
-const wfsVectorLayerLine = new VectorLayer({
-  source: wfsVectorSourceLine,
-  title: "Line",
-  // crossOrigin: "anonymous",
-  // opacity: 0,
-  visible: true,
-  displayInLayerSwitcher: true,
-});
+let wfsVectorLayer, wfsVectorSource;
 
 //LAYER GROUPS
 baseLayerGroup = new LayerGroup({
@@ -686,12 +640,6 @@ const infrastructure = new LayerGroup({
   displayInLayerSwitcher: true,
 });
 
-// const testGroup = new LayerGroup({
-//   layers: [wfsVectorSourcePoints, wfsVectorSourceLine, wfsVectorSourcePolygon],
-//   title: "Test Group",
-//   displayInLayerSwitcher: true,
-// });
-
 const map = new Map({
   target: "map",
   controls: defaults({ attribution: false }).extend(mapControls),
@@ -711,9 +659,6 @@ const map = new Map({
   }),
 });
 
-map.addLayer(wfsVectorLayerLine);
-map.addLayer(wfsVectorLayerPoints);
-map.addLayer(wfsVectorLayerPolygon);
 // Creating vectorSource to store layers
 const vectorSource = new VectorSource();
 
@@ -2162,8 +2107,7 @@ function dragElement(elmnt) {
 }
 
 //WFS CRUD
-let layerParam,
-  layerType,
+let layerType,
   vectorLayer,
   source,
   layerName,
@@ -2172,69 +2116,94 @@ let layerParam,
   body,
   geometryType,
   featureIDvalue,
-  draw;
+  draw,
+  layerTitle,
+  selectedLayer,
+  layerGroup,
+  layerParam;
 
 layerSwitcher.on("select", (e) => {
   map.removeInteraction(draw);
-  const layer = e.layer;
-  source = layer.getSource();
-  const features = source.getFeatures();
-  const url = source.getUrl();
-
-  vectorLayer = layer;
-  // Extract workspace and layer name from the URL
-  const urlParts = new URL(url);
-  const layerParam = urlParts.searchParams.get("typeName"); // Get the typeName parameter from the URL
-  [workspace, layerName] = layerParam.split(":");
-
-  // Construct the URL for DescribeFeatureType request
-  const describeFeatureTypeUrl = `http://localhost:8080/geoserver/${workspace}/ows?service=WFS&version=1.0.0&request=DescribeFeatureType&typeName=${layerParam}`;
-
-  // Make an AJAX request to GeoServer
-  fetch(describeFeatureTypeUrl)
-    .then((response) => response.text())
-    .then((data) => {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(data, "text/xml");
-
-      // Get all 'xsd:element' elements in the XML schema
-      const elementNodes = doc.getElementsByTagName("xsd:element");
-
-      // Loop through each 'xsd:element' to find the one with name="geom"
-      for (let i = 0; i < elementNodes.length; i++) {
-        const element = elementNodes[i];
-        const nameAttribute = element.getAttribute("name");
-
-        if (nameAttribute === "geom") {
-          // 'geom' element found, extract its 'type' attribute
-          const typeAttribute = element.getAttribute("type");
-          const [, typeName] = typeAttribute.split(":");
-
-          console.log(typeName);
-          // Log the type name
-          geometryType = typeName;
-          if (geometryType === "PointPropertyType") {
-            layerType = "Point";
-          } else if (geometryType === "GeometryPropertyType") {
-            layerType = "Polygon";
-          } else if (geometryType === "MultiLineStringPropertyType") {
-            layerType = "LineString";
+  selectedLayer = e.layer;
+  if (selectedLayer instanceof LayerGroup) {
+    //do nothing
+  } else if (selectedLayer instanceof TileLayer) {
+    layerTitle = selectedLayer.get("title");
+    console.log("Layer Title:", layerTitle);
+    layerParam = selectedLayer.getSource().getParams().LAYERS;
+    function getLayerGroup(layer) {
+      map.getLayers().forEach(function (groupLayer) {
+        if (groupLayer instanceof LayerGroup) {
+          if (groupLayer.getLayers().getArray().includes(layer)) {
+            layerGroup = groupLayer;
           }
-
-          console.log("Layer Param: ", layerParam);
-          console.log("Layer Name: ", layerName);
-          console.log("Workspace: ", workspace);
-          console.log("Geometry Type: ", geometryType);
-          console.log("Geometry (layertype):", layerType);
-          console.log("Vector Layer: ", vectorLayer);
-          console.log("Vector Source: ", source);
-          console.log(url);
         }
-      }
-    })
-    .catch((error) => {
-      console.error("Error fetching DescribeFeatureType:", error);
-    });
+      });
+      return layerGroup;
+    }
+
+    // Get the layer group containing the selected layer
+    const selectedLayerGroup = getLayerGroup(selectedLayer);
+  } else {
+    layerTitle = selectedLayer.get("title");
+    console.log("Layer Title:", layerTitle);
+    source = selectedLayer.getSource();
+    const features = source.getFeatures();
+    const url = source.getUrl();
+    vectorLayer = selectedLayer;
+    // Extract workspace and layer name from the URL
+    const urlParts = new URL(url);
+    layerParam = urlParts.searchParams.get("typeName"); // Get the typeName parameter from the URL
+    [workspace, layerName] = layerParam.split(":");
+
+    // Construct the URL for DescribeFeatureType request
+    const describeFeatureTypeUrl = `http://localhost:8080/geoserver/${workspace}/ows?service=WFS&version=1.0.0&request=DescribeFeatureType&typeName=${layerParam}`;
+
+    // Make an AJAX request to GeoServer
+    fetch(describeFeatureTypeUrl)
+      .then((response) => response.text())
+      .then((data) => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(data, "text/xml");
+
+        // Get all 'xsd:element' elements in the XML schema
+        const elementNodes = doc.getElementsByTagName("xsd:element");
+
+        // Loop through each 'xsd:element' to find the one with name="geom"
+        for (let i = 0; i < elementNodes.length; i++) {
+          const element = elementNodes[i];
+          const nameAttribute = element.getAttribute("name");
+
+          if (nameAttribute === "geom") {
+            // 'geom' element found, extract its 'type' attribute
+            const typeAttribute = element.getAttribute("type");
+            const [, typeName] = typeAttribute.split(":");
+
+            console.log(typeName);
+            // Log the type name
+            geometryType = typeName;
+            if (geometryType === "PointPropertyType") {
+              layerType = "Point";
+            } else if (geometryType === "GeometryPropertyType") {
+              layerType = "Polygon";
+            } else if (geometryType === "MultiLineStringPropertyType") {
+              layerType = "LineString";
+            }
+            console.log("Layer Param: ", layerParam);
+            console.log("Layer Name: ", layerName);
+            console.log("Workspace: ", workspace);
+            console.log("Geometry Type: ", geometryType);
+            console.log("Geometry (layertype):", layerType);
+            console.log("Vector Layer: ", vectorLayer);
+            console.log("Vector Source: ", source);
+            console.log(url);
+          }
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching DescribeFeatureType:", error);
+      });
+  }
 });
 
 const selectFeature = document.getElementById("selectFeature");
@@ -2822,4 +2791,37 @@ saveToLayerButton.addEventListener("click", () => {
   });
   source.refresh();
   map.removeInteraction(draw);
+});
+
+//EDIT LAYER
+
+const editLayerButton = document.getElementById("editLayer");
+
+editLayerButton.addEventListener("click", (e) => {
+  if (!selectedLayer) {
+    alert("Please select a layer!");
+    return;
+  }
+
+  //WFS Layer
+  wfsVectorSource = new VectorSource({
+    url: wfsLayerUrl + layerParam + wfsLayerUrlEnd,
+    format: new GeoJSON(),
+    attributions: "@geoserver",
+  });
+
+  wfsVectorLayer = new VectorLayer({
+    source: wfsVectorSource,
+    title: layerTitle,
+    // crossOrigin: "anonymous",
+    // opacity: 0,
+    visible: true,
+    displayInLayerSwitcher: true,
+  });
+
+  // Remove the polygon tile layer from the map
+  layerGroup.getLayers().remove(selectedLayer);
+
+  // Add the WFS vector layer to the map
+  layerGroup.getLayers().push(wfsVectorLayer);
 });
