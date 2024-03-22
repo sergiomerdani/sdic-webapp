@@ -2120,7 +2120,8 @@ let layerType,
   layerTitle,
   selectedLayer,
   layerGroup,
-  layerParam;
+  layerParam,
+  features;
 
 layerSwitcher.on("select", (e) => {
   map.removeInteraction(draw);
@@ -2148,7 +2149,8 @@ layerSwitcher.on("select", (e) => {
     layerTitle = selectedLayer.get("title");
     console.log("Layer Title:", layerTitle);
     source = selectedLayer.getSource();
-    const features = source.getFeatures();
+    features = source.getFeatures();
+    console.log(features);
     const url = source.getUrl();
     vectorLayer = selectedLayer;
     // Extract workspace and layer name from the URL
@@ -2729,70 +2731,6 @@ saveForm.addEventListener("click", (e) => {
   saveChanges(updatedProperties);
 });
 
-//SAVE TO LAYER
-const saveToLayerButton = document.getElementById("saveToLayer");
-
-function updatePropertyID(featureID) {
-  url = "http://localhost:8080/geoserver/test/ows";
-  featureIDvalue = featureID;
-
-  var updateBody = `
-    <wfs:Transaction service="WFS" version="1.0.0"
-    xmlns:topp="http://www.openplans.org/topp"
-    xmlns:ogc="http://www.opengis.net/ogc"
-    xmlns:wfs="http://www.opengis.net/wfs">
-    <wfs:Update typeName="${layerName}">
-    <wfs:Property>
-    <wfs:Name>id</wfs:Name>
-    <wfs:Value>${featureIDvalue}</wfs:Value>
-    </wfs:Property>
-      <ogc:Filter>
-        <ogc:FeatureId fid="${featureID}"/>
-      </ogc:Filter>
-    </wfs:Update>
-    </wfs:Transaction>
-  `;
-
-  const updateOptions = {
-    method: "POST",
-    headers: {
-      "Content-Type": "text/xml",
-    },
-    body: updateBody,
-  };
-
-  fetch(url, updateOptions)
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-      return response.text();
-    })
-    .then((data) => {
-      console.log("Property ID updated successfully:", data);
-    })
-    .catch((error) => {
-      console.error("Error updating property ID:", error);
-    });
-}
-
-let features;
-//Generates property ids for each feature
-saveToLayerButton.addEventListener("click", () => {
-  if (!features) {
-    return;
-  }
-  // Get all features from the vector source
-  features = source.getFeatures();
-
-  features.forEach((feature) => {
-    const drawnFeatureIds = feature.getId();
-    updatePropertyID(drawnFeatureIds);
-  });
-  source.refresh();
-  map.removeInteraction(draw);
-});
-
 //EDIT LAYER
 
 const editLayerButton = document.getElementById("editLayer");
@@ -2825,3 +2763,68 @@ editLayerButton.addEventListener("click", (e) => {
   // Add the WFS vector layer to the map
   layerGroup.getLayers().push(wfsVectorLayer);
 });
+
+//SAVE TO LAYER
+const saveToLayerButton = document.getElementById("saveToLayer");
+
+//Generates property ids for each feature
+saveToLayerButton.addEventListener("click", () => {
+  if (!features) {
+    return;
+  }
+  // Get all features from the vector source
+  features = source.getFeatures();
+  console.log(features);
+
+  features.forEach((feature) => {
+    const drawnFeatureIds = feature.getId();
+    console.log(drawnFeatureIds);
+    updatePropertyID(drawnFeatureIds);
+  });
+  source.refresh();
+  map.removeInteraction(draw);
+});
+
+function updatePropertyID(featureID) {
+  url = "http://localhost:8080/geoserver/test/ows";
+  featureIDvalue = featureID;
+
+  var updateBody = `
+    <wfs:Transaction service="WFS" version="1.0.0"
+    xmlns:topp="http://www.openplans.org/topp"
+    xmlns:ogc="http://www.opengis.net/ogc"
+    xmlns:wfs="http://www.opengis.net/wfs">
+    <wfs:Update typeName="${layerName}">
+    <wfs:Property>
+    <wfs:Name>id</wfs:Name>
+    <wfs:Value>${featureID}</wfs:Value>
+    </wfs:Property>
+      <ogc:Filter>
+        <ogc:FeatureId fid="${featureID}"/>
+      </ogc:Filter>
+    </wfs:Update>
+    </wfs:Transaction>
+  `;
+
+  const updateOptions = {
+    method: "POST",
+    headers: {
+      "Content-Type": "text/xml",
+    },
+    body: updateBody,
+  };
+
+  fetch(url, updateOptions)
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      return response.text();
+    })
+    .then((data) => {
+      console.log("Property ID updated successfully:", data);
+    })
+    .catch((error) => {
+      console.error("Error updating property ID:", error);
+    });
+}
