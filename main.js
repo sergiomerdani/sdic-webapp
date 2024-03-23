@@ -1162,6 +1162,7 @@ const layerGroups = [
 const onChangeCheck = function (evt) {
   const clickedLayer = evt;
   const parentLayerGroup = findParentLayerGroup(clickedLayer);
+  addItemToLegend("", clickedLayer);
 
   if (parentLayerGroup && clickedLayer.getVisible()) {
     parentLayerGroup.setVisible(true);
@@ -1182,9 +1183,9 @@ const onChangeCheck = function (evt) {
       } else {
         subLayer.setVisible(false);
       }
+      addItemToLegend(layers);
     });
   } catch (error) {}
-  addLayerToQuery();
 };
 
 function findParentLayerGroup(layer) {
@@ -1213,6 +1214,7 @@ const hasVisibleSubLayer = function (layerGroup) {
   layers.forEach((subLayer) => {
     if (subLayer.getVisible()) {
       isAnySubLayerVisible = true;
+      console.log(subLayer.getSource());
     }
   });
   layerGroup.setVisible(isAnySubLayerVisible);
@@ -2828,3 +2830,65 @@ function updatePropertyID(featureID) {
       console.error("Error updating property ID:", error);
     });
 }
+
+//ADD and MANAGE LEGEND
+
+let legend, newItem;
+
+const manageLegendItems = (layerGroup, layer) => {
+  if (layerGroup instanceof LayerGroup) {
+    const layers = layerGroup.getLayers().getArray();
+    layers.forEach((subLayer) => {
+      if (subLayer.getVisible()) {
+        newItem = {
+          title: subLayer.get("title"),
+          typeGeom: "Point",
+          style: new Style({
+            image: new Icon({
+              src: subLayer.getSource().getLegendUrl(),
+              // crossOrigin: "anonymous",
+            }),
+          }),
+        };
+        legend.addItem(newItem);
+      }
+    });
+  } else if (layer instanceof TileLayer) {
+    if (layer.getVisible()) {
+      newItem = {
+        title: layer.get("title"),
+        typeGeom: "Point",
+        style: new Style({
+          image: new Icon({
+            src: layer.getSource().getLegendUrl(),
+            // crossOrigin: "anonymous",
+          }),
+        }),
+      };
+      legend.addItem(newItem);
+    } else {
+      console.log(legend);
+    }
+  }
+};
+
+legend = new ol_legend_Legend({
+  title: "Legjenda",
+  items: [manageLegendItems()],
+});
+// Legend
+const legendCtrl = new ol_control_Legend({
+  title: "Legend",
+  margin: 10,
+  legend: legend,
+});
+
+map.addControl(legendCtrl);
+
+const addItemToLegend = () => {
+  legend.getItems().clear();
+  layerGroups.forEach((layerGroup) => {
+    manageLegendItems(layerGroup);
+  });
+};
+addItemToLegend();
