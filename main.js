@@ -1214,7 +1214,6 @@ const hasVisibleSubLayer = function (layerGroup) {
   layers.forEach((subLayer) => {
     if (subLayer.getVisible()) {
       isAnySubLayerVisible = true;
-      console.log(subLayer.getSource());
     }
   });
   layerGroup.setVisible(isAnySubLayerVisible);
@@ -2394,7 +2393,8 @@ drawFeatureWfs.addEventListener("click", (e) => {
 
   draw.on("drawend", function (event) {
     const feature = event.feature;
-    // const featureID = feature.getId();
+    const featureID = feature.getId();
+    console.log(feature);
     // Set the ID attribute to the feature
     const coordinates = feature.getGeometry().getCoordinates();
     if (layerType === "LineString") {
@@ -2780,8 +2780,10 @@ saveToLayerButton.addEventListener("click", () => {
 
   features.forEach((feature) => {
     const drawnFeatureIds = feature.getId();
-    console.log(drawnFeatureIds);
-    updatePropertyID(drawnFeatureIds);
+    const idParts = drawnFeatureIds.split(".");
+    const numberPart = idParts[1];
+    console.log(numberPart);
+    updatePropertyID(numberPart);
   });
   source.refresh();
   map.removeInteraction(draw);

@@ -77,7 +77,7 @@ header {
 #map {
   height: 100%;
 }
-
+/* 
 .ol-layerswitcher {
   pointer-events: auto;
   position: absolute;
@@ -92,7 +92,7 @@ header {
   z-index: 10;
   position: relative;
   font-size: 1.7em;
-}
+} */
 
 .form-container {
   padding: 30px;
