@@ -90,6 +90,7 @@ const proj32634 = new Projection({
   code: "EPSG:32634",
   extent: [166021.44, 0.0, 833978.56, 9329005.18],
   worldExtent: [18.0, 0.0, 24.0, 84.0],
+  units: "m",
 });
 
 const krgjshCenter = fromLonLat([19.818913, 41.328608], "EPSG:6870");
@@ -1627,7 +1628,6 @@ function calculateScale() {
 
   // Get the units used in the map (e.g., meters, feet)
   const units = view.getProjection().getUnits();
-
   // Define the number of inches per unit based on your map's projection
   const inchesPerUnit = {
     m: 39.37007874,
@@ -2782,7 +2782,6 @@ saveToLayerButton.addEventListener("click", () => {
     const drawnFeatureIds = feature.getId();
     const idParts = drawnFeatureIds.split(".");
     const numberPart = idParts[1];
-    console.log(numberPart);
     updatePropertyID(numberPart);
   });
   source.refresh();
