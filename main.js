@@ -1163,7 +1163,7 @@ const layerGroups = [
 const onChangeCheck = function (evt) {
   const clickedLayer = evt;
   const parentLayerGroup = findParentLayerGroup(clickedLayer);
-  addItemToLegend("", clickedLayer);
+  addItemToLegend(clickedLayer);
 
   if (parentLayerGroup && clickedLayer.getVisible()) {
     parentLayerGroup.setVisible(true);
@@ -2834,11 +2834,11 @@ function updatePropertyID(featureID) {
 
 //ADD and MANAGE LEGEND
 
-let legend, newItem;
+let legend, newItem, clickedLayer;
 
-const manageLegendItems = (layerGroup, layer) => {
-  if (layerGroup instanceof LayerGroup) {
-    const layers = layerGroup.getLayers().getArray();
+const manageLegendItems = (layer) => {
+  if (layer instanceof LayerGroup) {
+    const layers = layer.getLayers().getArray();
     layers.forEach((subLayer) => {
       if (subLayer.getVisible()) {
         newItem = {
@@ -2867,8 +2867,6 @@ const manageLegendItems = (layerGroup, layer) => {
         }),
       };
       legend.addItem(newItem);
-    } else {
-      console.log(legend);
     }
   }
 };
@@ -2886,10 +2884,15 @@ const legendCtrl = new ol_control_Legend({
 
 map.addControl(legendCtrl);
 
-const addItemToLegend = () => {
+const addItemToLegend = (clickedLayer) => {
   legend.getItems().clear();
   layerGroups.forEach((layerGroup) => {
-    manageLegendItems(layerGroup);
+    const layers = layerGroup.getLayers().getArray();
+    layers.forEach((layer) => {
+      clickedLayer = layer;
+      manageLegendItems(clickedLayer);
+    });
   });
 };
-addItemToLegend();
+
+addItemToLegend(clickedLayer);
