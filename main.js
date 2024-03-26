@@ -1163,7 +1163,7 @@ const layerGroups = [
 const onChangeCheck = function (evt) {
   const clickedLayer = evt;
   const parentLayerGroup = findParentLayerGroup(clickedLayer);
-  addItemToLegend(clickedLayer);
+  addItemToLegend();
 
   if (parentLayerGroup && clickedLayer.getVisible()) {
     parentLayerGroup.setVisible(true);
@@ -1184,7 +1184,7 @@ const onChangeCheck = function (evt) {
       } else {
         subLayer.setVisible(false);
       }
-      addItemToLegend(layers);
+      addItemToLegend();
     });
   } catch (error) {}
 };
@@ -2884,15 +2884,11 @@ const legendCtrl = new ol_control_Legend({
 
 map.addControl(legendCtrl);
 
-const addItemToLegend = (clickedLayer) => {
+const addItemToLegend = () => {
   legend.getItems().clear();
   layerGroups.forEach((layerGroup) => {
-    const layers = layerGroup.getLayers().getArray();
-    layers.forEach((layer) => {
-      clickedLayer = layer;
-      manageLegendItems(clickedLayer);
-    });
+    manageLegendItems(layerGroup);
   });
 };
 
-addItemToLegend(clickedLayer);
+addItemToLegend();
