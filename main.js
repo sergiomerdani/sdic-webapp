@@ -67,6 +67,122 @@ const asigWmsUrl =
 const asigWmsService = "https://geoportal.asig.gov.al/service";
 
 const geoserverUrl = "http://localhost:8080/geoserver/test/wms";
+
+const apiUrl = "http://localhost:8080/geoserver/rest/layergroups";
+
+function camelCase(str) {
+  // Split the string into words
+  const words = str.split(" ");
+
+  // Convert the first word to lowercase
+  let camelCaseStr = words[0].toLowerCase();
+
+  // Convert the first letter of each subsequent word to uppercase and append to the result
+  for (let i = 1; i < words.length; i++) {
+    const word = words[i];
+    camelCaseStr += word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+  }
+
+  return camelCaseStr;
+}
+
+function parseLayerInfo(layerParams) {
+  const parts = layerParams.split(":");
+  if (parts.length !== 2) {
+    throw new Error("Invalid layer name format");
+  }
+  const workspace2 = parts[0];
+  const layerName2 = parts[1];
+  const layerTitle2 = layerName2
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+  return { workspace2, layerName2, layerTitle2 };
+}
+
+let layerGroupName, layerParams;
+// Make a GET request to the API
+fetch(apiUrl)
+  .then((response) => {
+    // Check if the response is successful (status code 200-299)
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
+    }
+    // Parse the response as JSON
+    return response.json();
+  })
+  .then((data) => {
+    // Do something with the JSON data
+    console.log(data);
+
+    const layerGroups = data.layerGroups.layerGroup;
+    layerGroups.forEach((layerGroup) => {
+      layerGroupName = layerGroup.name;
+      const constLayerGroup = camelCase(layerGroupName);
+      console.log(constLayerGroup);
+
+      const newLayerGroup = new LayerGroup({
+        layers: [],
+        title: layerGroupName,
+        displayInLayerSwitcher: true,
+      });
+      map.addLayer(newLayerGroup);
+      layerGroups.push(newLayerGroup);
+
+      console.log("New Layer Group:", newLayerGroup);
+
+      const apiUrlLayerGroups =
+        apiUrl + "/" + encodeURIComponent(layerGroupName);
+
+      fetch(apiUrlLayerGroups)
+        .then((response) => {
+          // Check if the response is successful (status code 200-299)
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          // Parse the response as JSON
+          return response.json();
+        })
+        .then((data) => {
+          // Do something with the JSON data
+          console.log(data);
+          const layers = data.layerGroup.publishables.published;
+          // Iterate over each layer and get its name
+          layers.forEach((layer) => {
+            layerParams = layer.name;
+            console.log(layerParams);
+            const { workspace2, layerName2, layerTitle2 } =
+              parseLayerInfo(layerParams);
+
+            const tileLayer = new TileLayer({
+              source: new TileWMS({
+                url: `http://localhost:8080/geoserver/${workspace2}/wms`,
+                params: {
+                  LAYERS: layerName2,
+                  VERSION: "1.1.0",
+                },
+              }),
+              visible: false,
+              title: layerTitle2,
+              information: "Kufiri i tokësor i republikës së Shqipërisë",
+              displayInLayerSwitcher: true,
+            });
+            newLayerGroup.getLayers().push(tileLayer);
+            layers.push(tileLayer);
+            console.log(tileLayer);
+          });
+        })
+        .catch((error) => {
+          // Handle errors
+          console.error("There was a problem with the fetch operation:", error);
+        });
+    });
+  })
+  .catch((error) => {
+    // Handle errors
+    console.error("There was a problem with the fetch operation:", error);
+  });
+
 proj4.defs(
   "EPSG:6870",
   "+proj=tmerc +lat_0=0 +lon_0=20 +k=1 +x_0=500000 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs"
@@ -228,221 +344,6 @@ const country = new Style({
   fill: new Fill({
     color: "rgba(20,20,20,0.9)",
   }),
-});
-
-//BIODIVERSITY PROTECTION AND CONSERVATION
-const illegalPoaching = new Tile({
-  source: new TileWMS({
-    url: geoserverUrl,
-    params: {
-      LAYERS: "test:illegal_poaching",
-      VERSION: "1.1.0",
-    },
-  }),
-  visible: false,
-  title: "Illegal Poaching",
-  information: "Kufiri i tokësor i republikës së Shqipërisë",
-  displayInLayerSwitcher: true,
-});
-
-const wildlifeTracking = new Tile({
-  source: new TileWMS({
-    url: geoserverUrl,
-    params: {
-      LAYERS: "test:wildlife_tracking",
-      VERSION: "1.1.0",
-    },
-  }),
-  visible: true,
-  title: "Wildlife Tracking",
-  information: "Kufiri i tokësor i republikës së Shqipërisë",
-  displayInLayerSwitcher: true,
-});
-
-const plantsTracking = new Tile({
-  source: new TileWMS({
-    url: geoserverUrl,
-    params: {
-      LAYERS: "test:plants_tracking",
-      VERSION: "1.1.0",
-    },
-  }),
-  visible: true,
-  title: "Plants Tracking",
-  information: "Kufiri i tokësor i republikës së Shqipërisë",
-  displayInLayerSwitcher: true,
-});
-
-//PARK MANAGEMENT MONITORING LAYERS
-const wasteMangement = new Tile({
-  source: new TileWMS({
-    url: geoserverUrl,
-    params: {
-      LAYERS: "test:waste_management",
-      VERSION: "1.1.0",
-    },
-  }),
-  visible: false,
-  title: "Waste Management",
-  information: "Kufiri i tokësor i republikës së Shqipërisë",
-  displayInLayerSwitcher: true,
-});
-
-const illegalLogging = new Tile({
-  source: new TileWMS({
-    url: geoserverUrl,
-    params: {
-      LAYERS: "test:illegal_logging",
-      VERSION: "1.1.0",
-    },
-  }),
-  visible: false,
-  title: "Illegal Logging",
-  information: "Kufiri i tokësor i republikës së Shqipërisë",
-  displayInLayerSwitcher: true,
-});
-
-const erosion = new Tile({
-  source: new TileWMS({
-    url: geoserverUrl,
-    params: {
-      LAYERS: "test:erosion",
-      VERSION: "1.1.0",
-    },
-  }),
-  visible: false,
-  title: "Erosion",
-  information: "Kufiri i tokësor i republikës së Shqipërisë",
-  displayInLayerSwitcher: true,
-});
-
-const fire = new Tile({
-  source: new TileWMS({
-    url: geoserverUrl,
-    params: {
-      LAYERS: "test:fire",
-      VERSION: "1.1.0",
-    },
-  }),
-  visible: false,
-  title: "Fire",
-  information: "Kufiri i tokësor i republikës së Shqipërisë",
-  displayInLayerSwitcher: true,
-});
-
-const waterLevelMonitoring = new Tile({
-  source: new TileWMS({
-    url: geoserverUrl,
-    params: {
-      LAYERS: "test:water_level_monitoring",
-      VERSION: "1.1.0",
-    },
-  }),
-  visible: false,
-  title: "Water Level Monitoring",
-  information: "Kufiri i tokësor i republikës së Shqipërisë",
-  displayInLayerSwitcher: true,
-});
-
-//SUSTAINABLE TOURISM LAYERS
-const facilities = new Tile({
-  source: new TileWMS({
-    url: geoserverUrl,
-    params: {
-      LAYERS: "test:facilities",
-      VERSION: "1.1.0",
-    },
-  }),
-  visible: true,
-  title: "Facilities",
-  information: "Kufiri i tokësor i republikës së Shqipërisë",
-  displayInLayerSwitcher: true,
-});
-
-const infoCenter = new Tile({
-  source: new TileWMS({
-    url: geoserverUrl,
-    params: {
-      LAYERS: "test:info_center",
-      VERSION: "1.1.0",
-    },
-  }),
-  visible: true,
-  title: "Info Center",
-  information: "Kufiri i tokësor i republikës së Shqipërisë",
-  displayInLayerSwitcher: true,
-});
-
-const touristActivitiesAndSports = new Tile({
-  source: new TileWMS({
-    url: geoserverUrl,
-    params: {
-      LAYERS: "test:toursists_activities_sports",
-      VERSION: "1.1.0",
-    },
-  }),
-  visible: true,
-  title: "Tourists Activities & Sports",
-  information: "Kufiri i tokësor i republikës së Shqipërisë",
-  displayInLayerSwitcher: true,
-});
-
-const localBusinesses = new Tile({
-  source: new TileWMS({
-    url: geoserverUrl,
-    params: {
-      LAYERS: "test:local_businesses",
-      VERSION: "1.1.0",
-    },
-  }),
-  visible: true,
-  title: "Local Businesses",
-  information: "Kufiri i tokësor i republikës së Shqipërisë",
-  displayInLayerSwitcher: true,
-});
-
-const accomodation = new Tile({
-  source: new TileWMS({
-    url: geoserverUrl,
-    params: {
-      LAYERS: "test:accommodation",
-      VERSION: "1.1.0",
-    },
-  }),
-  visible: true,
-  title: "Accommodation",
-  information: "Kufiri i tokësor i republikës së Shqipërisë",
-  displayInLayerSwitcher: true,
-});
-
-//INFRASTRUCTURE
-
-const roads = new Tile({
-  source: new TileWMS({
-    url: geoserverUrl,
-    params: {
-      LAYERS: "test:roads",
-      VERSION: "1.1.0",
-    },
-  }),
-  visible: true,
-  title: "Roads",
-  information: "Kufiri i tokësor i republikës së Shqipërisë",
-  displayInLayerSwitcher: true,
-});
-
-const hikingTrails = new Tile({
-  source: new TileWMS({
-    url: geoserverUrl,
-    params: {
-      LAYERS: "test:hiking_trails",
-      VERSION: "1.1.0",
-    },
-  }),
-  visible: true,
-  title: "Hiking Trails",
-  information: "Kufiri i tokësor i republikës së Shqipërisë",
-  displayInLayerSwitcher: true,
 });
 
 //ASIG Layers
@@ -611,48 +512,10 @@ const addressSystem = new LayerGroup({
   displayInLayerSwitcher: true,
 });
 
-const biodiversityProtectionConservation = new LayerGroup({
-  layers: [wildlifeTracking, illegalPoaching, plantsTracking],
-  title: "Biodiversity Protection",
-  displayInLayerSwitcher: true,
-});
-
-const parkManagementMonitoring = new LayerGroup({
-  layers: [wasteMangement, illegalLogging, erosion, fire, waterLevelMonitoring],
-  title: "Park Management Monitoring",
-  displayInLayerSwitcher: true,
-});
-
-const sustainableTourism = new LayerGroup({
-  layers: [
-    facilities,
-    infoCenter,
-    touristActivitiesAndSports,
-    localBusinesses,
-    accomodation,
-  ],
-  title: "Sustainable Tourism",
-  displayInLayerSwitcher: true,
-});
-
-const infrastructure = new LayerGroup({
-  layers: [hikingTrails, roads],
-  title: "Infrastructure",
-  displayInLayerSwitcher: true,
-});
-
 const map = new Map({
   target: "map",
   controls: defaults({ attribution: false }).extend(mapControls),
-  layers: [
-    baseLayerGroup,
-    asigLayers,
-    addressSystem,
-    infrastructure,
-    sustainableTourism,
-    parkManagementMonitoring,
-    biodiversityProtectionConservation,
-  ],
+  layers: [baseLayerGroup, asigLayers, addressSystem],
   view: new View({
     projection: proj32634,
     center: utmCenter,
@@ -1151,14 +1014,7 @@ const displayInLayerSwitcher = (layer) => {
 //__________________________________________________________________________________________
 
 // Customizing layer switcher functions
-const layerGroups = [
-  asigLayers,
-  addressSystem,
-  infrastructure,
-  sustainableTourism,
-  parkManagementMonitoring,
-  biodiversityProtectionConservation,
-];
+const layerGroups = [asigLayers, addressSystem];
 
 const onChangeCheck = function (evt) {
   const clickedLayer = evt;
@@ -1278,10 +1134,10 @@ function getInfo(event) {
   const maxPropertiesToShow = 10;
 
   // Get visible layers in the layer groups in reverse order (uppermost layer first)
-  const layerGroupOne = readGroupLayers(biodiversityProtectionConservation);
-  const layerGroupTwo = readGroupLayers(parkManagementMonitoring);
-  const layerGroupThree = readGroupLayers(sustainableTourism);
-  const layerGroupFour = readGroupLayers(infrastructure);
+  const layerGroupOne = readGroupLayers(biodiversityProtectionAndConservation);
+  const layerGroupTwo = readGroupLayers(infrastructure);
+  const layerGroupThree = readGroupLayers(parkManagementMonitoring);
+  const layerGroupFour = readGroupLayers(sustainableTourism);
 
   // Get visible layers in the "Local Data" layer group in reverse order (uppermost layer first)
   visibleLayers = [
@@ -1838,23 +1694,7 @@ async function getFields() {
   }
 }
 
-const layers = [
-  wildlifeTracking,
-  illegalPoaching,
-  plantsTracking,
-  wasteMangement,
-  illegalLogging,
-  erosion,
-  fire,
-  waterLevelMonitoring,
-  facilities,
-  infoCenter,
-  touristActivitiesAndSports,
-  localBusinesses,
-  accomodation,
-  hikingTrails,
-  roads,
-];
+const layers = [];
 
 // Populate the dropdown with layer names
 const layerSelect = document.getElementById("layerSelect");
