@@ -112,14 +112,10 @@ fetch(apiUrl)
     return response.json();
   })
   .then((data) => {
-    // Do something with the JSON data
-    console.log(data);
-
     const layerGroups = data.layerGroups.layerGroup;
     layerGroups.forEach((layerGroup) => {
       layerGroupName = layerGroup.name;
       const constLayerGroup = camelCase(layerGroupName);
-      console.log(constLayerGroup);
 
       const newLayerGroup = new LayerGroup({
         layers: [],
@@ -127,9 +123,7 @@ fetch(apiUrl)
         displayInLayerSwitcher: true,
       });
       map.addLayer(newLayerGroup);
-      layerGroups.push(newLayerGroup);
-
-      console.log("New Layer Group:", newLayerGroup);
+      layerGroupsArray.push(newLayerGroup);
 
       const apiUrlLayerGroups =
         apiUrl + "/" + encodeURIComponent(layerGroupName);
@@ -145,20 +139,17 @@ fetch(apiUrl)
         })
         .then((data) => {
           // Do something with the JSON data
-          console.log(data);
           const layers = data.layerGroup.publishables.published;
           // Iterate over each layer and get its name
           layers.forEach((layer) => {
             layerParams = layer.name;
-            console.log(layerParams);
             const { workspace2, layerName2, layerTitle2 } =
               parseLayerInfo(layerParams);
-
             const tileLayer = new TileLayer({
               source: new TileWMS({
                 url: `http://localhost:8080/geoserver/${workspace2}/wms`,
                 params: {
-                  LAYERS: layerName2,
+                  LAYERS: layerParams,
                   VERSION: "1.1.0",
                 },
               }),
@@ -169,7 +160,6 @@ fetch(apiUrl)
             });
             newLayerGroup.getLayers().push(tileLayer);
             layers.push(tileLayer);
-            console.log(tileLayer);
           });
         })
         .catch((error) => {
@@ -1014,7 +1004,7 @@ const displayInLayerSwitcher = (layer) => {
 //__________________________________________________________________________________________
 
 // Customizing layer switcher functions
-const layerGroups = [asigLayers, addressSystem];
+const layerGroupsArray = [asigLayers, addressSystem];
 
 const onChangeCheck = function (evt) {
   const clickedLayer = evt;
@@ -1076,7 +1066,7 @@ const hasVisibleSubLayer = function (layerGroup) {
   layerGroup.setVisible(isAnySubLayerVisible);
 };
 // Loop through each layer group and update its visibility
-layerGroups.forEach((layerGroup) => {
+layerGroupsArray.forEach((layerGroup) => {
   hasVisibleSubLayer(layerGroup);
 });
 
@@ -1134,10 +1124,10 @@ function getInfo(event) {
   const maxPropertiesToShow = 10;
 
   // Get visible layers in the layer groups in reverse order (uppermost layer first)
-  const layerGroupOne = readGroupLayers(biodiversityProtectionAndConservation);
-  const layerGroupTwo = readGroupLayers(infrastructure);
-  const layerGroupThree = readGroupLayers(parkManagementMonitoring);
-  const layerGroupFour = readGroupLayers(sustainableTourism);
+  const layerGroupOne = readGroupLayers(layerGroupsArray[2]);
+  const layerGroupTwo = readGroupLayers(layerGroupsArray[3]);
+  const layerGroupThree = readGroupLayers(layerGroupsArray[4]);
+  const layerGroupFour = readGroupLayers(layerGroupsArray[5]);
 
   // Get visible layers in the "Local Data" layer group in reverse order (uppermost layer first)
   visibleLayers = [
@@ -1971,7 +1961,6 @@ layerSwitcher.on("select", (e) => {
     //do nothing
   } else if (selectedLayer instanceof TileLayer) {
     layerTitle = selectedLayer.get("title");
-    console.log("Layer Title:", layerTitle);
     layerParam = selectedLayer.getSource().getParams().LAYERS;
     function getLayerGroup(layer) {
       map.getLayers().forEach(function (groupLayer) {
@@ -1983,21 +1972,21 @@ layerSwitcher.on("select", (e) => {
       });
       return layerGroup;
     }
-
-    // Get the layer group containing the selected layer
     const selectedLayerGroup = getLayerGroup(selectedLayer);
   } else {
     layerTitle = selectedLayer.get("title");
-    console.log("Layer Title:", layerTitle);
     source = selectedLayer.getSource();
     features = source.getFeatures();
-    console.log(features);
     const url = source.getUrl();
+    console.log(source);
+    console.log(url);
     vectorLayer = selectedLayer;
-    // Extract workspace and layer name from the URL
     const urlParts = new URL(url);
-    layerParam = urlParts.searchParams.get("typeName"); // Get the typeName parameter from the URL
+    console.log(urlParts);
+    layerParam = urlParts.searchParams.get("typeName");
+
     [workspace, layerName] = layerParam.split(":");
+    // const workspace = urlParts.pathname.split("/")[2];
 
     // Construct the URL for DescribeFeatureType request
     const describeFeatureTypeUrl = `http://localhost:8080/geoserver/${workspace}/ows?service=WFS&version=1.0.0&request=DescribeFeatureType&typeName=${layerParam}`;
@@ -2582,7 +2571,6 @@ editLayerButton.addEventListener("click", (e) => {
     alert("Please select a layer!");
     return;
   }
-
   //WFS Layer
   wfsVectorSource = new VectorSource({
     url: wfsLayerUrl + layerParam + wfsLayerUrlEnd,
@@ -2598,7 +2586,6 @@ editLayerButton.addEventListener("click", (e) => {
     visible: true,
     displayInLayerSwitcher: true,
   });
-
   // Remove the polygon tile layer from the map
   layerGroup.getLayers().remove(selectedLayer);
 
@@ -2726,7 +2713,7 @@ map.addControl(legendCtrl);
 
 const addItemToLegend = () => {
   legend.getItems().clear();
-  layerGroups.forEach((layerGroup) => {
+  layerGroupsArray.forEach((layerGroup) => {
     manageLegendItems(layerGroup);
   });
 };
