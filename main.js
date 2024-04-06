@@ -66,8 +66,6 @@ const asigWmsUrl =
 
 const asigWmsService = "https://geoportal.asig.gov.al/service";
 
-const geoserverUrl = "http://localhost:8080/geoserver/test/wms";
-
 const apiUrl = "http://localhost:8080/geoserver/rest/layergroups";
 
 function camelCase(str) {
@@ -153,13 +151,13 @@ fetch(apiUrl)
                   VERSION: "1.1.0",
                 },
               }),
-              visible: false,
+              visible: true,
               title: layerTitle2,
               information: "Kufiri i tokësor i republikës së Shqipërisë",
               displayInLayerSwitcher: true,
             });
             newLayerGroup.getLayers().push(tileLayer);
-            layers.push(tileLayer);
+            layersArray.push(tileLayer);
           });
         })
         .catch((error) => {
@@ -200,7 +198,7 @@ const proj32634 = new Projection({
 });
 
 const krgjshCenter = fromLonLat([19.818913, 41.328608], "EPSG:6870");
-const utmCenter = [401170.19359, 4575960.311822];
+const utmCenter = [413011.607371, 4564155.943308];
 
 //creating attribution control for ol
 const attributionControl = new Attribution({
@@ -509,7 +507,8 @@ const map = new Map({
   view: new View({
     projection: proj32634,
     center: utmCenter,
-    zoom: 5,
+    zoom: 5.8,
+    maxZoom: 20,
   }),
 });
 
@@ -1004,34 +1003,44 @@ const displayInLayerSwitcher = (layer) => {
 //__________________________________________________________________________________________
 
 // Customizing layer switcher functions
-const layerGroupsArray = [asigLayers, addressSystem];
+let layerGroupsArray = [asigLayers, addressSystem];
 
 const onChangeCheck = function (evt) {
   const clickedLayer = evt;
   const parentLayerGroup = findParentLayerGroup(clickedLayer);
-  addItemToLegend();
 
   if (parentLayerGroup && clickedLayer.getVisible()) {
     parentLayerGroup.setVisible(true);
   } else if (parentLayerGroup && hasVisibleSubLayer(parentLayerGroup)) {
     parentLayerGroup.setVisible(false);
   }
-  const baseLayer = clickedLayer.get("title") === "Base Layers";
-  try {
-    const layers = evt.getLayers().getArray();
 
-    layers.forEach((subLayer) => {
-      if (
-        clickedLayer instanceof LayerGroup &&
-        clickedLayer.values_.visible === true &&
-        !baseLayer
-      ) {
-        subLayer.setVisible(true);
+  // Check if the clicked layer is a base layer
+  const baseLayer = clickedLayer.get("title") === "Base Layers";
+
+  try {
+    if (clickedLayer instanceof LayerGroup) {
+      // If clicked layer is a LayerGroup
+      const layers = clickedLayer.getLayers().getArray();
+
+      layers.forEach((subLayer) => {
+        if (!baseLayer && clickedLayer.getVisible()) {
+          subLayer.setVisible(true);
+        } else {
+          subLayer.setVisible(false);
+        }
+      });
+    } else {
+      // If clicked layer is an individual layer (TileLayer, ImageLayer, etc.)
+      if (!baseLayer && clickedLayer.getVisible()) {
+        clickedLayer.setVisible(true);
       } else {
-        subLayer.setVisible(false);
+        clickedLayer.setVisible(false);
       }
-      addItemToLegend();
-    });
+    }
+
+    addItemToLegend();
+    addLayerToQuery();
   } catch (error) {}
 };
 
@@ -1662,7 +1671,7 @@ async function getFields() {
   attributeSelect.innerHTML = "";
   let fields = [];
   const selectedLayerIndex = parseInt(layerSelect.value);
-  const selectedLayer = layers[selectedLayerIndex];
+  const selectedLayer = layersArray[selectedLayerIndex];
   if (selectedLayer) {
     uniqueValuesMap = await fetchAndExtractKeys(layerWFS);
   }
@@ -1684,7 +1693,7 @@ async function getFields() {
   }
 }
 
-const layers = [];
+const layersArray = [];
 
 // Populate the dropdown with layer names
 const layerSelect = document.getElementById("layerSelect");
@@ -1695,9 +1704,9 @@ function addLayerToQuery() {
   defaultOption.value = "";
   defaultOption.text = "Select a layer...";
   layerSelect.appendChild(defaultOption);
-  layers.forEach((wmsLayer, index) => {
+  layersArray.forEach((wmsLayer, index) => {
     if (wmsLayer.getVisible()) {
-      const layerToAdd = layers[index];
+      const layerToAdd = layersArray[index];
       const option = document.createElement("option");
       option.value = index;
       option.text = layerToAdd.get("title");
@@ -1709,10 +1718,9 @@ let layerWFS;
 // Event listener for layer selection change
 layerSelect.addEventListener("change", function () {
   const selectedIndex = this.value;
-  const selectedLayer = layers[selectedIndex];
+  const selectedLayer = layersArray[selectedIndex];
   const selectedLayerSource = selectedLayer.getSource();
   const layerParams = selectedLayerSource.getParams().LAYERS;
-  console.log(layerParams);
   layerWFS = `http://localhost:8080/geoserver/test/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=${layerParams}&outputFormat=json`;
   getFields();
   getAttributeValues();
@@ -1790,7 +1798,7 @@ fieldSelect.addEventListener("change", function () {
 
 const filterCQL = function () {
   const selectedLayerIndex = parseInt(layerSelect.value);
-  const selectedLayer = layers[selectedLayerIndex];
+  const selectedLayer = layersArray[selectedLayerIndex];
 
   // Check if the attribute select dropdown is hidden (number field)
   const attributeInput = document.getElementById("attributeInput");
@@ -1820,7 +1828,6 @@ const filterCQL = function () {
 
       const CQLFilter =
         selectedField + " " + selectedOperator + " '" + selectedAttribute + "'";
-      console.log(CQLFilter);
 
       params.CQL_FILTER = CQLFilter;
     }
@@ -1830,7 +1837,7 @@ const filterCQL = function () {
 
 const resetFilter = function () {
   const selectedLayerIndex = parseInt(layerSelect.value);
-  const selectedLayer = layers[selectedLayerIndex];
+  const selectedLayer = layersArray[selectedLayerIndex];
 
   if (selectedLayer) {
     const targetSource = selectedLayer.getSource();
@@ -2714,7 +2721,12 @@ map.addControl(legendCtrl);
 const addItemToLegend = () => {
   legend.getItems().clear();
   layerGroupsArray.forEach((layerGroup) => {
-    manageLegendItems(layerGroup);
+    if (
+      layerGroup.get("title") !== "ASIG Layers" &&
+      layerGroup.get("title") !== "Sistemi i Adresave"
+    ) {
+      manageLegendItems(layerGroup);
+    }
   });
 };
 
