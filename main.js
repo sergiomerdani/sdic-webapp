@@ -1161,8 +1161,6 @@ function getInfo(event) {
   // Helper function to get the features of a layer and show the form if features exist
   // Assuming you have an array with image filenames
 
-  let currentImageIndex = 0;
-
   function getLayerFeatures(layer) {
     const url = layer
       .getSource()
@@ -1234,80 +1232,10 @@ function getInfo(event) {
               contentWrapper.appendChild(labelWrapper);
               contentWrapper.appendChild(inputWrapper);
               // Check if the layer title is "shkshInstitucionet"
-              if (layerTitle === "SHKSH Institucionet") {
-                // Add a new row for inserting images at the end
-                var insertImagesLabel = document.createElement("label");
-                insertImagesLabel.textContent = "Insert images";
-                insertImagesLabel.style.paddingBottom = "7px";
-                insertImagesLabel.style.width = "auto";
-
-                var insertImagesInput = document.createElement("input");
-                insertImagesInput.setAttribute("type", "file");
-                insertImagesInput.setAttribute("multiple", "multiple"); // Allow multiple file selection
-                insertImagesInput.style.width = "auto";
-
-                labelWrapper.appendChild(insertImagesLabel);
-                inputWrapper.appendChild(insertImagesInput);
-
-                // Add event listener for file input change
-                insertImagesInput.addEventListener("change", function (event) {
-                  const files = event.target.files;
-                  // Add your logic to handle the selected files here
-                  console.log("Selected files:", files);
-                });
-              }
 
               formContainer.appendChild(contentWrapper);
 
               // Display images at the end only for "shkshInstitucionet" layer
-              if (layerTitle === "SHKSH Institucionet") {
-                var imageWrapper = document.createElement("div");
-                imageWrapper.classList.add("image-wrapper");
-
-                var imageElement = document.createElement("img");
-                imageElement.setAttribute(
-                  "src",
-                  `./images/image_${currentImageIndex}.jpg`
-                );
-                imageElement.style.maxWidth = "260px";
-                imageElement.style.maxHeight = "170px";
-
-                var prevImageButton = document.createElement("button");
-                prevImageButton.textContent = "Previous";
-                prevImageButton.addEventListener("click", function () {
-                  navigateImage("prev");
-                });
-
-                var nextImageButton = document.createElement("button");
-                nextImageButton.textContent = "Next";
-                nextImageButton.addEventListener("click", function () {
-                  navigateImage("next");
-                });
-
-                imageWrapper.appendChild(prevImageButton);
-                imageWrapper.appendChild(imageElement);
-                imageWrapper.appendChild(nextImageButton);
-
-                formContainer.appendChild(imageWrapper);
-
-                function navigateImage(direction) {
-                  // Assuming you have a total of 100 images
-                  const totalImages = 100;
-
-                  if (direction === "prev") {
-                    currentImageIndex =
-                      (currentImageIndex - 1 + totalImages) % totalImages;
-                  } else if (direction === "next") {
-                    currentImageIndex = (currentImageIndex + 1) % totalImages;
-                  }
-
-                  // Update the source of the image element
-                  imageElement.setAttribute(
-                    "src",
-                    `./images/image_${currentImageIndex}.jpg`
-                  );
-                }
-              }
 
               const existingFormContainer =
                 document.querySelector(".form-container");
@@ -2731,3 +2659,115 @@ const addItemToLegend = () => {
 };
 
 addItemToLegend();
+
+//ADD LAYER GROUP
+
+const addLayerGroupButton = document.getElementById("addLayerGroup");
+// Step 1: Create Layer Group in GeoServer using REST API (Assuming you have authentication credentials)
+
+addLayerGroupButton.addEventListener("click", () => {
+  addLayerGroup();
+});
+
+function addLayerGroup() {
+  fetch("http://localhost:8080/geoserver/rest/layergroups", {
+    method: "POST",
+    headers: {
+      "Content-Type": "text/xml",
+      Authorization: "Basic " + btoa("admin:geoserver"), // Replace with your credentials
+    },
+    body: `	
+    <layerGroup>
+  <name>nyc</name>
+  <layers>
+    <layer>test:plants_tracking</layer>
+  </layers>
+  <styles>
+    <style>point</style>
+  </styles>
+</layerGroup>`,
+  })
+    .then((response) => response.text())
+    .then((data) => {
+      console.log("Layer group created:", data);
+      // Step 2: Retrieve Layer Group Configuration if needed
+    })
+    .catch((error) => console.error("Error creating layer group:", error));
+}
+
+const addLayerButton = document.getElementById("addLayer");
+// Step 1: Create Layer Group in GeoServer using REST API (Assuming you have authentication credentials)
+
+addLayerButton.addEventListener("click", () => {
+  addLayer();
+});
+
+function addLayer() {
+  fetch("http://localhost:8080/geoserver/rest/layers", {
+    method: "POST",
+    headers: {
+      "Content-Type": "text/xml",
+      Authorization: "Basic " + btoa("admin:geoserver"), // Replace with your credentials
+    },
+    body: `	
+    <?xml version="1.0" encoding="UTF-8"?>
+    <featureType>
+        <name>aaaaaaaaaaaaaaaaa</name>
+        <nativeName>native_name</nativeName>
+        <title>My Layer Title</title>
+        <abstract>My Layer Description</abstract>
+        <srs>EPSG:6870</srs>
+        <enabled>true</enabled>
+        <projectionPolicy>FORCE_DECLARED</projectionPolicy>
+        <metadata>
+            <entry key="key1">value1</entry>
+            <entry key="key2">value2</entry>
+        </metadata>
+    </featureType>
+    `,
+  })
+    .then((response) => response.text())
+    .then((data) => {
+      console.log("Layer created:", data);
+      // Step 2: Retrieve Layer Group Configuration if needed
+    })
+    .catch((error) => console.error("Error creating layer group:", error));
+}
+
+const exportPDFButton = document.getElementById("exportPDF");
+
+exportPDFButton.addEventListener("click", () => {
+  const pdf = new jsPDF();
+
+  const link =
+    "http://localhost:8080/geoserver/test/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=test:adm_units&maxFeatures=50&outputFormat=application/json";
+  // Create new jsPDF instance
+  fetch(link)
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      return response.json();
+    })
+    .then((data) => {
+      const features = data.features;
+      let yOffset = 20; // Initial Y position
+      features.forEach((feature) => {
+        const name = feature.properties.name;
+        const year = feature.properties.viti_2024;
+        // Add content to the PDF
+        pdf.text(20, yOffset, `Administrative Name: ${name}`);
+        yOffset += 5; // Increase Y position for next line
+        pdf.text(20, yOffset, `Year 2024: ${year} visitors`);
+        yOffset += 10; // Increase Y position for next feature
+      });
+
+      // Save the PDF
+      pdf.save("filename.pdf");
+      // Log a message to console
+      console.log("PDF exported!");
+    })
+    .catch((error) => {
+      console.error("There was a problem with the fetch operation:", error);
+    });
+});
