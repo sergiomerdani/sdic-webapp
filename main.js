@@ -60,7 +60,6 @@ import { optionsFromCapabilities } from "ol/source/WMTS";
 import WMTS from "ol/source/WMTS";
 import Layer from "ol/layer/Layer";
 import { Chart } from "chart.js/auto";
-import { BarController } from "chart.js";
 
 //URLs
 const asigWmsUrl =
@@ -2738,45 +2737,18 @@ function addLayer() {
 
 const exportPDFButton = document.getElementById("exportPDF");
 
-// const ctx = document.getElementById("myChart");
-
-// exportPDFButton.addEventListener("click", () => {
-//   new Chart(ctx, {
-//     type: "bar",
-//     data: {
-//       labels: ["Red", "Blue", "Yellow", "Green", "Purple", "Orange"],
-//       datasets: [
-//         {
-//           label: "# of Votes",
-//           data: [12, 19, 3, 5, 2, 3],
-//           borderWidth: 1,
-//         },
-//       ],
-//     },
-//     options: {
-//       scales: {
-//         y: {
-//           beginAtZero: true,
-//         },
-//       },
-//     },
-//   });
-// });
-
 exportPDFButton.addEventListener("click", () => {
   const canvas = document.createElement("canvas");
-
   canvas.id = "myChart";
-
   document.body.appendChild(canvas);
 
   const ctx = document.getElementById("myChart");
-
   let myChart;
 
   const pdf = new jsPDF();
   const link =
     "http://localhost:8080/geoserver/test/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=test:adm_units&maxFeatures=50&outputFormat=application/json";
+
   fetch(link)
     .then((response) => {
       if (!response.ok) {
@@ -2812,13 +2784,12 @@ exportPDFButton.addEventListener("click", () => {
           },
         },
       };
-
       myChart = new Chart(ctx, config);
-
-      console.log(myChart);
-      pdf.save("filename.pdf");
-
-      console.log("PDF exported!");
+      const image = canvas.toDataURL("image/png");
+      const img = new Image();
+      img.src = image;
+      pdf.addImage(img, "PNG", 10, 20, 180, 90); // Adjust position and size as needed
+      document.body.appendChild(img);
     })
     .catch((error) => {
       console.error("There was a problem with the fetch operation:", error);
