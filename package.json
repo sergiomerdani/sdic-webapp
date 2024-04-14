@@ -10,6 +10,7 @@
     "vite": "^4.0.4"
   },
   "dependencies": {
+    "chart.js": "^4.4.2",
     "jspdf": "^2.5.1",
     "ol": "latest",
     "ol-ext": "^4.0.10",

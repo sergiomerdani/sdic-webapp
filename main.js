@@ -59,6 +59,8 @@ import { WMTSCapabilities } from "ol/format";
 import { optionsFromCapabilities } from "ol/source/WMTS";
 import WMTS from "ol/source/WMTS";
 import Layer from "ol/layer/Layer";
+import { Chart } from "chart.js/auto";
+import { BarController } from "chart.js";
 
 //URLs
 const asigWmsUrl =
@@ -2736,12 +2738,45 @@ function addLayer() {
 
 const exportPDFButton = document.getElementById("exportPDF");
 
-exportPDFButton.addEventListener("click", () => {
-  const pdf = new jsPDF();
+// const ctx = document.getElementById("myChart");
 
+// exportPDFButton.addEventListener("click", () => {
+//   new Chart(ctx, {
+//     type: "bar",
+//     data: {
+//       labels: ["Red", "Blue", "Yellow", "Green", "Purple", "Orange"],
+//       datasets: [
+//         {
+//           label: "# of Votes",
+//           data: [12, 19, 3, 5, 2, 3],
+//           borderWidth: 1,
+//         },
+//       ],
+//     },
+//     options: {
+//       scales: {
+//         y: {
+//           beginAtZero: true,
+//         },
+//       },
+//     },
+//   });
+// });
+
+exportPDFButton.addEventListener("click", () => {
+  const canvas = document.createElement("canvas");
+
+  canvas.id = "myChart";
+
+  document.body.appendChild(canvas);
+
+  const ctx = document.getElementById("myChart");
+
+  let myChart;
+
+  const pdf = new jsPDF();
   const link =
     "http://localhost:8080/geoserver/test/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=test:adm_units&maxFeatures=50&outputFormat=application/json";
-  // Create new jsPDF instance
   fetch(link)
     .then((response) => {
       if (!response.ok) {
@@ -2751,20 +2786,38 @@ exportPDFButton.addEventListener("click", () => {
     })
     .then((data) => {
       const features = data.features;
-      let yOffset = 20; // Initial Y position
-      features.forEach((feature) => {
-        const name = feature.properties.name;
-        const year = feature.properties.viti_2024;
-        // Add content to the PDF
-        pdf.text(20, yOffset, `Administrative Name: ${name}`);
-        yOffset += 5; // Increase Y position for next line
-        pdf.text(20, yOffset, `Year 2024: ${year} visitors`);
-        yOffset += 10; // Increase Y position for next feature
-      });
 
-      // Save the PDF
+      const labels = features.map((feature) => feature.properties.name);
+      const dataValues = features.map(
+        (feature) => feature.properties.viti_2024
+      );
+
+      const config = {
+        type: "bar",
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: "Number of Visitors",
+              data: dataValues,
+              borderWidth: 1,
+            },
+          ],
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true,
+            },
+          },
+        },
+      };
+
+      myChart = new Chart(ctx, config);
+
+      console.log(myChart);
       pdf.save("filename.pdf");
-      // Log a message to console
+
       console.log("PDF exported!");
     })
     .catch((error) => {
