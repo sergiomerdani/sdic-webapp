@@ -100,15 +100,10 @@
           <button class="fa-button" id="editLayer" title="Edit Layer">
             EDIT
           </button>
-          <button class="fa-button" id="addLayerGroup" title="Add Layer Group">
-            Add Layer Group
-          </button>
-          <button class="fa-button" id="addLayer" title="Add Layer">
-            Add Layer
-          </button>
           <button class="fa-button" id="exportPDF" title="Export PDF">
             Export PDF
           </button>
+          <button id="addLayerGroupButton">Add Layer Group</button>
           <div class="search-wrapper"></div>
         </div>
       </div>
@@ -182,6 +177,23 @@
         </table>
       </div>
     </div>
+    <div id="addLayerGroupModal" class="modal">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Add Layer Group</h2>
+        <label for="layerGroupName">Layer Group Name:</label>
+        <input
+          type="text"
+          id="layerGroupName"
+          placeholder="Enter layer group name"
+        /><br /><br />
+        <label for="layerDropdown">Select Layer:</label>
+        <select id="layerDropdown"></select>
+        <br /><br />
+        <button id="submitBtn">Submit</button>
+      </div>
+    </div>
+
     <script type="module" src="./main.js"></script>
   </body>
 </html>

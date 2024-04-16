@@ -99,7 +99,9 @@ function parseLayerInfo(layerParams) {
   return { workspace2, layerName2, layerTitle2 };
 }
 
-let layerGroupName, layerParams;
+let layerGroupName,
+  layerParams,
+  layersArray = [];
 // Make a GET request to the API
 fetch(apiUrl)
   .then((response) => {
@@ -115,7 +117,6 @@ fetch(apiUrl)
     layerGroups.forEach((layerGroup) => {
       layerGroupName = layerGroup.name;
       const constLayerGroup = camelCase(layerGroupName);
-
       const newLayerGroup = new LayerGroup({
         layers: [],
         title: layerGroupName,
@@ -129,18 +130,15 @@ fetch(apiUrl)
 
       fetch(apiUrlLayerGroups)
         .then((response) => {
-          // Check if the response is successful (status code 200-299)
           if (!response.ok) {
             throw new Error("Network response was not ok");
           }
-          // Parse the response as JSON
           return response.json();
         })
         .then((data) => {
-          // Do something with the JSON data
           const layers = data.layerGroup.publishables.published;
-          // Iterate over each layer and get its name
-          layers.forEach((layer) => {
+          const normalizedLayers = Array.isArray(layers) ? layers : [layers];
+          normalizedLayers.forEach((layer) => {
             layerParams = layer.name;
             const { workspace2, layerName2, layerTitle2 } =
               parseLayerInfo(layerParams);
@@ -1622,8 +1620,6 @@ async function getFields() {
   }
 }
 
-const layersArray = [];
-
 // Populate the dropdown with layer names
 const layerSelect = document.getElementById("layerSelect");
 
@@ -2661,80 +2657,129 @@ const addItemToLegend = () => {
 
 addItemToLegend();
 
+// ___________________________________________________________________________________________________________
 //ADD LAYER GROUP
+let layerGroupNameValue, selectedDropDownLayer;
 
-const addLayerGroupButton = document.getElementById("addLayerGroup");
-// Step 1: Create Layer Group in GeoServer using REST API (Assuming you have authentication credentials)
+const addLayerGroupButton = document.getElementById("addLayerGroupButton");
 
-addLayerGroupButton.addEventListener("click", () => {
+const modal = document.getElementById("addLayerGroupModal");
+
+const span = document.getElementsByClassName("close")[1];
+addLayerGroupButton.addEventListener("click", function () {
+  modal.style.display = "block";
+});
+
+span.onclick = function () {
+  modal.style.display = "none";
+};
+
+window.onclick = function (event) {
+  if (event.target == modal) {
+    modal.style.display = "none";
+  }
+  const layerDropdown = document.getElementById("layerDropdown");
+
+  layerDropdown.innerHTML = "";
+
+  const defaultOption = document.createElement("option");
+  defaultOption.value = "";
+  defaultOption.text = "Select a layer";
+  layerDropdown.appendChild(defaultOption);
+
+  layersArray.forEach((layer) => {
+    const option = document.createElement("option");
+    option.value = layer.getSource().getParams().LAYERS;
+    option.text = option.value; // Use layer name as option text
+    layerDropdown.appendChild(option);
+  });
+};
+
+layerDropdown.addEventListener("change", function () {
+  selectedDropDownLayer = layerDropdown.value;
+  console.log("Selected Layer:", selectedDropDownLayer);
+});
+
+document.getElementById("submitBtn").addEventListener("click", function () {
+  const layerGroupNameInput = document.getElementById("layerGroupName");
+  layerGroupNameValue = layerGroupNameInput.value;
   addLayerGroup();
+  modal.style.display = "none";
 });
 
 function addLayerGroup() {
+  // Send request to create layer group
   fetch("http://localhost:8080/geoserver/rest/layergroups", {
     method: "POST",
     headers: {
       "Content-Type": "text/xml",
-      Authorization: "Basic " + btoa("admin:geoserver"), // Replace with your credentials
+      Authorization: "Basic " + btoa("admin:geoserver"),
     },
-    body: `	
-    <layerGroup>
-  <name>nyc</name>
-  <layers>
-    <layer>test:plants_tracking</layer>
-  </layers>
-  <styles>
-    <style>point</style>
-  </styles>
-</layerGroup>`,
+    body: `<layerGroup>
+    <name>${layerGroupNameValue}</name>
+    <layers>
+      <layer>${selectedDropDownLayer}</layer>
+    </layers>
+    <styles>
+      <style>point</style>
+    </styles>
+    <bounds>
+        <minx>126530.81806662556</minx>
+        <maxx>4427129.1730813645</maxx>
+        <miny>699492.3966753744</miny>
+        <maxy>4701182.713534636</maxy>
+        <crs>EPSG:6870</crs>
+      </bounds>
+    </layerGroup>`,
   })
     .then((response) => response.text())
     .then((data) => {
       console.log("Layer group created:", data);
-      // Step 2: Retrieve Layer Group Configuration if needed
     })
     .catch((error) => console.error("Error creating layer group:", error));
 }
 
-const addLayerButton = document.getElementById("addLayer");
-// Step 1: Create Layer Group in GeoServer using REST API (Assuming you have authentication credentials)
+let updatedPayload = `<layerGroup>
+<name>${layerGroupNameValue}</name>
+<layers>
+  <layer>fire</layer>
+  <layer>hiking_trails</layer>
+</layers>
+<styles>
+  <style>point</style>
+  <style>line</style>
+</styles>
+<bounds>
+    <minx>126530.81806662556</minx>
+    <maxx>4427129.1730813645</maxx>
+    <miny>699492.3966753744</miny>
+    <maxy>4701182.713534636</maxy>
+    <crs>EPSG:6870</crs>
+  </bounds>
+</layerGroup>`;
 
-addLayerButton.addEventListener("click", () => {
-  addLayer();
-});
-
-function addLayer() {
-  fetch("http://localhost:8080/geoserver/rest/layers", {
-    method: "POST",
+function addLayerToGroup() {
+  fetch("http://localhost:8080/geoserver/rest/layergroups/testDoren", {
+    method: "PUT",
     headers: {
       "Content-Type": "text/xml",
       Authorization: "Basic " + btoa("admin:geoserver"), // Replace with your credentials
     },
-    body: `	
-    <?xml version="1.0" encoding="UTF-8"?>
-    <featureType>
-        <name>aaaaaaaaaaaaaaaaa</name>
-        <nativeName>native_name</nativeName>
-        <title>My Layer Title</title>
-        <abstract>My Layer Description</abstract>
-        <srs>EPSG:6870</srs>
-        <enabled>true</enabled>
-        <projectionPolicy>FORCE_DECLARED</projectionPolicy>
-        <metadata>
-            <entry key="key1">value1</entry>
-            <entry key="key2">value2</entry>
-        </metadata>
-    </featureType>
-    `,
+    body: updatedPayload,
   })
     .then((response) => response.text())
     .then((data) => {
-      console.log("Layer created:", data);
-      // Step 2: Retrieve Layer Group Configuration if needed
+      console.log("Layer group modified:", data);
     })
     .catch((error) => console.error("Error creating layer group:", error));
 }
 
+// const addLayerButton = document.getElementById("addLayer");
+// addLayerButton.addEventListener("click", () => {
+//   addLayerToGroup();
+// });
+
+// _______________________________________________________________________________
 const exportPDFButton = document.getElementById("exportPDF");
 
 exportPDFButton.addEventListener("click", () => {
