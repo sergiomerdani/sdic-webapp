@@ -2659,7 +2659,10 @@ addItemToLegend();
 
 // ___________________________________________________________________________________________________________
 //ADD LAYER GROUP
-let layerGroupNameValue, selectedDropDownLayer, selectedDropDownGroup;
+let layerGroupNameValue,
+  selectedDropDownLayer,
+  selectedDropDownGroup,
+  selectedStyle;
 
 const addLayerGroupButton = document.getElementById("addLayerGroupButton");
 
@@ -2884,6 +2887,7 @@ layerGroupDropdown.addEventListener("change", function () {
 
 document.getElementById("submitButton").addEventListener("click", function () {
   updateLayerGroupWithNewLayer(selectedDropDownGroup, selectedDropDownLayer);
+  getLayerStyle(selectedDropDownLayer);
   modal2.style.display = "none";
 });
 
@@ -2930,8 +2934,8 @@ function updateLayerGroupWithNewLayer(
         layerGroupData.styles.style = [layerGroupData.styles.style];
       }
       layerGroupData.styles.style.push({
-        name: "point",
-        href: "http://localhost:8080/geoserver/rest/styles/point.json",
+        name: `${selectedStyle}`,
+        href: `http://localhost:8080/geoserver/rest/styles/${selectedStyle}.json`,
       });
 
       const updatedLayerGroupData = JSON.stringify({
@@ -2958,5 +2962,29 @@ function updateLayerGroupWithNewLayer(
     })
     .catch((error) => {
       console.error("There was a problem updating the layer group:", error);
+    });
+}
+
+function getLayerStyle(selectedDropDownLayer) {
+  fetch(
+    `http://localhost:8080/geoserver/rest/layers/${selectedDropDownLayer}.json`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  )
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      return response.json();
+    })
+    .then((data) => {
+      selectedStyle = data.layer.defaultStyle.name;
+    })
+    .catch((error) => {
+      console.error("There was a problem with the fetch operation:", error);
     });
 }
