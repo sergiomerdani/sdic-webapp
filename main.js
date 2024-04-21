@@ -2659,7 +2659,7 @@ addItemToLegend();
 
 // ___________________________________________________________________________________________________________
 //ADD LAYER GROUP
-let layerGroupNameValue, selectedDropDownLayer;
+let layerGroupNameValue, selectedDropDownLayer, selectedDropDownGroup;
 
 const addLayerGroupButton = document.getElementById("addLayerGroupButton");
 
@@ -2673,12 +2673,12 @@ addLayerGroupButton.addEventListener("click", function () {
 span.onclick = function () {
   modal.style.display = "none";
 };
+const layerDropdown = document.getElementById("layerDropdown");
 
 window.onclick = function (event) {
   if (event.target == modal) {
     modal.style.display = "none";
   }
-  const layerDropdown = document.getElementById("layerDropdown");
 
   layerDropdown.innerHTML = "";
 
@@ -2738,46 +2738,6 @@ function addLayerGroup() {
     })
     .catch((error) => console.error("Error creating layer group:", error));
 }
-
-let updatedPayload = `<layerGroup>
-<name>${layerGroupNameValue}</name>
-<layers>
-  <layer>fire</layer>
-  <layer>hiking_trails</layer>
-</layers>
-<styles>
-  <style>point</style>
-  <style>line</style>
-</styles>
-<bounds>
-    <minx>126530.81806662556</minx>
-    <maxx>4427129.1730813645</maxx>
-    <miny>699492.3966753744</miny>
-    <maxy>4701182.713534636</maxy>
-    <crs>EPSG:6870</crs>
-  </bounds>
-</layerGroup>`;
-
-function addLayerToGroup() {
-  fetch("http://localhost:8080/geoserver/rest/layergroups/testDoren", {
-    method: "PUT",
-    headers: {
-      "Content-Type": "text/xml",
-      Authorization: "Basic " + btoa("admin:geoserver"), // Replace with your credentials
-    },
-    body: updatedPayload,
-  })
-    .then((response) => response.text())
-    .then((data) => {
-      console.log("Layer group modified:", data);
-    })
-    .catch((error) => console.error("Error creating layer group:", error));
-}
-
-// const addLayerButton = document.getElementById("addLayer");
-// addLayerButton.addEventListener("click", () => {
-//   addLayerToGroup();
-// });
 
 // _______________________________________________________________________________
 const exportPDFButton = document.getElementById("exportPDF");
@@ -2840,3 +2800,163 @@ exportPDFButton.addEventListener("click", () => {
       console.error("There was a problem with the fetch operation:", error);
     });
 });
+
+// ________________________________________________________________________
+
+const addLayerToGroupButton = document.getElementById("updateLayerGroupBtn");
+
+const modal2 = document.getElementById("addLayerToGroupModal");
+
+const span2 = document.getElementsByClassName("close")[2];
+
+addLayerToGroupButton.addEventListener("click", function () {
+  modal2.style.display = "block";
+  getAllLayerGroups();
+  getAllLayers();
+});
+span2.onclick = function () {
+  modal2.style.display = "none";
+};
+const layerGroupDropdown = document.getElementById("layerGroupDropdown");
+
+function getAllLayerGroups() {
+  fetch("http://localhost:8080/geoserver/rest/layergroups.json", {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      // Add any necessary authentication headers here
+    },
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      return response.json(); // Parse the JSON from the response
+    })
+    .then((data) => {
+      const layerGroupName = data.layerGroups.layerGroup.map(
+        (group) => group.name
+      );
+
+      layerGroupDropdown.innerHTML = "";
+
+      const defaultOption = document.createElement("option");
+      defaultOption.value = "";
+      defaultOption.text = "Select a Layer Group";
+      layerGroupDropdown.appendChild(defaultOption);
+
+      layerGroupName.forEach((group) => {
+        const option = document.createElement("option");
+        option.value = group;
+        option.text = group; // Use layer name as option text
+        layerGroupDropdown.appendChild(option);
+      });
+    })
+    .catch((error) => {
+      console.error("There was a problem fetching layer groups:", error);
+    });
+}
+const newLayerDropdown = document.getElementById("newLayerDropdown");
+
+function getAllLayers() {
+  newLayerDropdown.innerHTML = "";
+
+  const defaultOption = document.createElement("option");
+  defaultOption.value = "";
+  defaultOption.text = "Select a layer";
+  newLayerDropdown.appendChild(defaultOption);
+
+  layersArray.forEach((layer) => {
+    const option = document.createElement("option");
+    option.value = layer.getSource().getParams().LAYERS;
+    option.text = option.value; // Use layer name as option text
+    newLayerDropdown.appendChild(option);
+  });
+}
+
+newLayerDropdown.addEventListener("change", function () {
+  selectedDropDownLayer = newLayerDropdown.value;
+});
+
+layerGroupDropdown.addEventListener("change", function () {
+  selectedDropDownGroup = layerGroupDropdown.value;
+});
+
+document.getElementById("submitButton").addEventListener("click", function () {
+  updateLayerGroupWithNewLayer(selectedDropDownGroup, selectedDropDownLayer);
+  modal2.style.display = "none";
+});
+
+function updateLayerGroupWithNewLayer(
+  selectedDropDownGroup,
+  selectedDropDownLayer
+) {
+  const text = selectedDropDownLayer;
+  const layerNameOnly = text.split(":")[1];
+  const encodedLayerGroupName = encodeURIComponent(selectedDropDownGroup);
+  fetch(
+    `http://localhost:8080/geoserver/rest/layergroups/${encodedLayerGroupName}`,
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  )
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      return response.json();
+    })
+    .then((data) => {
+      const layerGroupData = data.layerGroup;
+      console.log(layerGroupData);
+
+      // Ensure publishables.published is an array
+      if (!Array.isArray(layerGroupData.publishables.published)) {
+        layerGroupData.publishables.published = [
+          layerGroupData.publishables.published,
+        ];
+      }
+      layerGroupData.publishables.published.push({
+        "@type": "layer",
+        name: `${selectedDropDownLayer}`,
+        href: `http://localhost:8080/geoserver/rest/workspaces/test/layers/${layerNameOnly}.json`,
+      });
+
+      // Ensure styles.style is an array
+      if (!Array.isArray(layerGroupData.styles.style)) {
+        layerGroupData.styles.style = [layerGroupData.styles.style];
+      }
+      layerGroupData.styles.style.push({
+        name: "point",
+        href: "http://localhost:8080/geoserver/rest/styles/point.json",
+      });
+
+      const updatedLayerGroupData = JSON.stringify({
+        layerGroup: layerGroupData,
+      });
+
+      console.log(updatedLayerGroupData);
+      return fetch(
+        `http://localhost:8080/geoserver/rest/layergroups/${encodedLayerGroupName}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: updatedLayerGroupData,
+        }
+      );
+    })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      console.log("Layer group updated successfully");
+    })
+    .catch((error) => {
+      console.error("There was a problem updating the layer group:", error);
+    });
+}
