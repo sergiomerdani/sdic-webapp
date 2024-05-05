@@ -60,14 +60,55 @@ import { optionsFromCapabilities } from "ol/source/WMTS";
 import WMTS from "ol/source/WMTS";
 import Layer from "ol/layer/Layer";
 import { Chart } from "chart.js/auto";
+import { toLonLat } from "ol/proj";
+
+proj4.defs("EPSG:4326", "+proj=longlat +datum=WGS84 +no_defs +type=crs");
+register(proj4);
+
+proj4.defs(
+  "EPSG:6870",
+  "+proj=tmerc +lat_0=0 +lon_0=20 +k=1 +x_0=500000 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs"
+);
+register(proj4);
+
+proj4.defs(
+  "EPSG:32634",
+  "+proj=utm +zone=34 +datum=WGS84 +units=m +no_defs +type=crs"
+);
+register(proj4);
+
+const wgs84Proj = new Projection({
+  code: "EPSG:4326",
+  units: "degrees",
+  worldExtent: [-180.0, -90.0, 180.0, 90.0],
+});
+const krgjshProjection = new Projection({
+  code: "EPSG:6870",
+  extent: [-2963585.56, 3639475.76, 2404277.44, 9525908.77],
+  worldExtent: [-16.1, 32.88, 40.18, 84.73],
+  units: "m",
+});
+const proj32634 = new Projection({
+  code: "EPSG:32634",
+  extent: [166021.44, 0.0, 833978.56, 9329005.18],
+  worldExtent: [18.0, 0.0, 24.0, 84.0],
+  units: "m",
+});
+
+const krgjshCenter = fromLonLat([19.818913, 41.328608], "EPSG:6870");
+const utmCenter = [413011.607371, 4564155.943308];
+const wgs84Center = [19.820709, 41.33042];
 
 //URLs
+
+let host = "localhost";
 const asigWmsUrl =
   "https://geoportal.asig.gov.al/service/kufinjt_e_njesive_administrative/wms?request=GetCapabilities";
 
 const asigWmsService = "https://geoportal.asig.gov.al/service";
 
-const apiUrl = "http://localhost:8080/geoserver/rest/layergroups";
+// const apiUrl = "http://${host}:8080/geoserver/rest/layergroups"; //${host}
+const apiUrl = `http://${host}:8080/geoserver/rest/layergroups`; //server
 
 function camelCase(str) {
   // Split the string into words
@@ -124,7 +165,6 @@ fetch(apiUrl)
       });
       map.addLayer(newLayerGroup);
       layerGroupsArray.push(newLayerGroup);
-
       const apiUrlLayerGroups =
         apiUrl + "/" + encodeURIComponent(layerGroupName);
 
@@ -144,13 +184,13 @@ fetch(apiUrl)
               parseLayerInfo(layerParams);
             const tileLayer = new TileLayer({
               source: new TileWMS({
-                url: `http://localhost:8080/geoserver/${workspace2}/wms`,
+                url: `http://${host}:8080/geoserver/${workspace2}/wms`,
                 params: {
                   LAYERS: layerParams,
                   VERSION: "1.1.0",
                 },
               }),
-              visible: true,
+              visible: false,
               title: layerTitle2,
               information: "Kufiri i tokësor i republikës së Shqipërisë",
               displayInLayerSwitcher: true,
@@ -169,35 +209,6 @@ fetch(apiUrl)
     // Handle errors
     console.error("There was a problem with the fetch operation:", error);
   });
-
-proj4.defs(
-  "EPSG:6870",
-  "+proj=tmerc +lat_0=0 +lon_0=20 +k=1 +x_0=500000 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs"
-);
-register(proj4);
-
-proj4.defs(
-  "EPSG:32634",
-  "+proj=utm +zone=34 +datum=WGS84 +units=m +no_defs +type=crs"
-);
-
-register(proj4);
-
-const krgjshProjection = new Projection({
-  code: "EPSG:6870",
-  extent: [-2963585.56, 3639475.76, 2404277.44, 9525908.77],
-  worldExtent: [-90, -90, 90, 90],
-  units: "m",
-});
-const proj32634 = new Projection({
-  code: "EPSG:32634",
-  extent: [166021.44, 0.0, 833978.56, 9329005.18],
-  worldExtent: [18.0, 0.0, 24.0, 84.0],
-  units: "m",
-});
-
-const krgjshCenter = fromLonLat([19.818913, 41.328608], "EPSG:6870");
-const utmCenter = [413011.607371, 4564155.943308];
 
 //creating attribution control for ol
 const attributionControl = new Attribution({
@@ -462,8 +473,7 @@ const roadsAdr = new Tile({
 });
 
 //EXTRA LAYER FOR CRUD
-const wfsLayerUrl =
-  "http://localhost:8080/geoserver/test/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=";
+const wfsLayerUrl = `http://${host}:8080/geoserver/test/ows?service=WFS&version=1.1.0&request=GetFeature&typeName=`;
 const wfsLayerUrlEnd = "&maxFeatures=50&outputFormat=application/json";
 
 let wfsVectorLayer, wfsVectorSource;
@@ -504,8 +514,8 @@ const map = new Map({
   controls: defaults({ attribution: false }).extend(mapControls),
   layers: [baseLayerGroup, asigLayers, addressSystem],
   view: new View({
-    projection: proj32634,
-    center: utmCenter,
+    projection: wgs84Proj,
+    center: wgs84Center,
     zoom: 5.8,
     maxZoom: 20,
   }),
@@ -1118,7 +1128,7 @@ function getInfo(event) {
   const pixel = event.pixel;
   var coordinate = map.getCoordinateFromPixel(pixel);
 
-  let visibleLayers;
+  // let visibleLayers;
 
   // Function to read visible layers in the "Local Data" group
   function readGroupLayers(grouplayers) {
@@ -1131,19 +1141,30 @@ function getInfo(event) {
 
   const maxPropertiesToShow = 10;
 
-  // Get visible layers in the layer groups in reverse order (uppermost layer first)
-  const layerGroupOne = readGroupLayers(layerGroupsArray[2]);
-  const layerGroupTwo = readGroupLayers(layerGroupsArray[3]);
-  const layerGroupThree = readGroupLayers(layerGroupsArray[4]);
-  const layerGroupFour = readGroupLayers(layerGroupsArray[5]);
+  // // Get visible layers in the layer groups in reverse order (uppermost layer first)
+  // const layerGroupOne = readGroupLayers(layerGroupsArray[2]);
+  // const layerGroupTwo = readGroupLayers(layerGroupsArray[3]);
+  // const layerGroupThree = readGroupLayers(layerGroupsArray[4]);
+  // const layerGroupFour = readGroupLayers(layerGroupsArray[5]);
 
-  // Get visible layers in the "Local Data" layer group in reverse order (uppermost layer first)
-  visibleLayers = [
-    ...layerGroupOne,
-    ...layerGroupTwo,
-    ...layerGroupThree,
-    ...layerGroupFour,
-  ];
+  // // Get visible layers in the "Local Data" layer group in reverse order (uppermost layer first)
+  // visibleLayers = [
+  //   ...layerGroupOne,
+  //   ...layerGroupTwo,
+  //   ...layerGroupThree,
+  //   ...layerGroupFour,
+  // ];
+
+  const visibleLayers = [];
+
+  // Iterate over layer groups starting from index 2
+  for (let i = 2; i < layerGroupsArray.length; i++) {
+    // Read layers of the current group
+    const currentLayerGroup = readGroupLayers(layerGroupsArray[i]);
+
+    // Add layers to visibleLayers array
+    visibleLayers.push(...currentLayerGroup);
+  }
 
   if (visibleLayers.length < 1) {
     const formContainer = document.querySelector(".form-container");
@@ -1401,28 +1422,60 @@ getXYCoordsBtn.addEventListener("click", function () {
   map.on("click", getXYClickListener);
 });
 
-// CALCULATE SCALE
+// // CALCULATE SCALE
+// function calculateScale() {
+//   // Get the map's view
+//   const view = map.getView();
+//   // Get the resolution of the view (units per pixel)
+//   const resolution = view.getResolution();
+
+//   // Get the units used in the map (e.g., meters, feet)
+//   const units = view.getProjection().getUnits();
+//   console.log(units);
+//   // Define the number of inches per unit based on your map's projection
+//   const inchesPerUnit = {
+//     m: 39.37007874,
+//     ft: 12,
+//   };
+
+//   // Get the dots per inch of your display (e.g., standard is 96 dpi)
+//   const dpi = 96;
+
+//   // Calculate the scale
+//   const scale = resolution * inchesPerUnit[units] * dpi;
+
+//   // Update the input value with the calculated scale
+//   const scaleInput = document.getElementById("scaleInput");
+//   scaleInput.value = "1:" + scale.toFixed(0);
+// }
+// Assuming you have included Proj4js library in your project
+
 function calculateScale() {
   // Get the map's view
   const view = map.getView();
-  // Get the resolution of the view (units per pixel)
+
+  // Get the resolution of the view (degrees per pixel)
   const resolution = view.getResolution();
 
-  // Get the units used in the map (e.g., meters, feet)
-  const units = view.getProjection().getUnits();
-  // Define the number of inches per unit based on your map's projection
-  const inchesPerUnit = {
-    m: 39.37007874,
-    ft: 12,
-  };
+  // Get the center coordinate of the map
+  const center = view.getCenter();
 
-  // Get the dots per inch of your display (e.g., standard is 96 dpi)
+  // Convert degrees to meters at the center latitude
+  const metersPerDegreeLongitude =
+    111412.84 * Math.cos(center[1]) -
+    93.5 * Math.cos(3 * center[1]) +
+    0.118 * Math.cos(5 * center[1]);
+
+  // Get the width of the map container in pixels
+  const mapWidth = map.getTargetElement().clientWidth;
+
+  // Calculate the width of the map in meters
+  const mapWidthMeters = resolution * mapWidth * metersPerDegreeLongitude;
+
   const dpi = 96;
+  const inchesPerMeter = 39.3701;
+  const scale = (mapWidthMeters * inchesPerMeter) / dpi;
 
-  // Calculate the scale
-  const scale = resolution * inchesPerUnit[units] * dpi;
-
-  // Update the input value with the calculated scale
   const scaleInput = document.getElementById("scaleInput");
   scaleInput.value = "1:" + scale.toFixed(0);
 }
@@ -1646,7 +1699,7 @@ layerSelect.addEventListener("change", function () {
   const selectedLayer = layersArray[selectedIndex];
   const selectedLayerSource = selectedLayer.getSource();
   const layerParams = selectedLayerSource.getParams().LAYERS;
-  layerWFS = `http://localhost:8080/geoserver/test/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=${layerParams}&outputFormat=json`;
+  layerWFS = `http://${host}:8080/geoserver/test/ows?service=WFS&version=1.1.0&request=GetFeature&typeName=${layerParams}&outputFormat=json`;
   getFields();
   getAttributeValues();
   updateOperatorOptions();
@@ -1724,7 +1777,7 @@ fieldSelect.addEventListener("change", function () {
 const filterCQL = function () {
   const selectedLayerIndex = parseInt(layerSelect.value);
   const selectedLayer = layersArray[selectedLayerIndex];
-
+  console.log(selectedLayer);
   // Check if the attribute select dropdown is hidden (number field)
   const attributeInput = document.getElementById("attributeInput");
   let targetSource = selectedLayer.getSource();
@@ -1756,9 +1809,35 @@ const filterCQL = function () {
 
       params.CQL_FILTER = CQLFilter;
     }
+    console.log(targetSource, selectedAttribute);
     targetSource.updateParams(params);
   }
 };
+
+// FIRST FILTER
+
+const filterAcceptedButton = document.getElementById("filterAccepted");
+
+filterAcceptedButton.addEventListener("click", () => {
+  layersArray.forEach(function (layer) {
+    // Get the source of the layer
+    const source = layer.getSource();
+    // Check if source exists
+    if (source) {
+      // Get parameters of the source
+      const params = source.getParams();
+      console.log(params);
+      // Construct the CQL filter for the 'accepted' attribute
+      const CQLFilter = "category = 'B'";
+      console.log(CQLFilter);
+      // Set the CQL filter in the params
+      params.CQL_FILTER = CQLFilter;
+
+      // Update the parameters of the source
+      source.updateParams(params);
+    }
+  });
+});
 
 const resetFilter = function () {
   const selectedLayerIndex = parseInt(layerSelect.value);
@@ -1921,7 +2000,7 @@ layerSwitcher.on("select", (e) => {
     // const workspace = urlParts.pathname.split("/")[2];
 
     // Construct the URL for DescribeFeatureType request
-    const describeFeatureTypeUrl = `http://localhost:8080/geoserver/${workspace}/ows?service=WFS&version=1.0.0&request=DescribeFeatureType&typeName=${layerParam}`;
+    const describeFeatureTypeUrl = `http://${host}:8080/geoserver/${workspace}/ows?service=WFS&version=1.1.0&request=DescribeFeatureType&typeName=${layerParam}`;
 
     // Make an AJAX request to GeoServer
     fetch(describeFeatureTypeUrl)
@@ -1946,7 +2025,10 @@ layerSwitcher.on("select", (e) => {
             console.log(typeName);
             // Log the type name
             geometryType = typeName;
-            if (geometryType === "PointPropertyType") {
+            if (
+              geometryType === "PointPropertyType" ||
+              geometryType === "MultiPointPropertyType"
+            ) {
               layerType = "Point";
             } else if (geometryType === "GeometryPropertyType") {
               layerType = "Polygon";
@@ -2004,7 +2086,7 @@ modifyfeature.addEventListener("click", (e) => {
         <wfs:Property>
           <wfs:Name>geom</wfs:Name>
           <wfs:Value>
-            <gml:Polygon srsName="EPSG:32634">
+            <gml:Polygon srsName="EPSG:4326">
               <gml:outerBoundaryIs>
                 <gml:LinearRing>
                   <gml:coordinates>${formattedCoordinates}</gml:coordinates>
@@ -2033,7 +2115,7 @@ modifyfeature.addEventListener("click", (e) => {
           <wfs:Property>
             <wfs:Name>geom</wfs:Name>
             <wfs:Value>
-              <gml:MultiLineString srsName="http://www.opengis.net/gml/srs/epsg.xml#32634">
+              <gml:MultiLineString srsName="http://www.opengis.net/gml/srs/epsg.xml#4326">
                 <gml:lineStringMember>
                   <gml:LineString>
                     <gml:coordinates>${formattedCoordinates}</gml:coordinates>
@@ -2059,7 +2141,7 @@ modifyfeature.addEventListener("click", (e) => {
         <wfs:Property>
           <wfs:Name>geom</wfs:Name>
           <wfs:Value>
-            <gml:Point srsName="EPSG:32634">
+            <gml:Point srsName="EPSG:4326">
               <gml:coordinates>${formattedCoordinates}</gml:coordinates>
             </gml:Point>
           </wfs:Value>
@@ -2072,7 +2154,7 @@ modifyfeature.addEventListener("click", (e) => {
     }
 
     // Send a WFS Transaction request to update the geometry
-    const url = "http://localhost:8080/geoserver/test/ows";
+    const url = `http://${host}:8080/geoserver/test/ows`;
 
     // Send the WFS Transaction request
     fetch(url, {
@@ -2164,16 +2246,16 @@ drawFeatureWfs.addEventListener("click", (e) => {
         .map((pair) => pair.join(","))
         .join(" ");
       console.log("Line Coordinates:", formattedCoordinates);
-      body = `<wfs:Transaction service="WFS" version="1.0.0"
+      body = `<wfs:Transaction service="WFS" version="1.1.0"
     xmlns:wfs="http://www.opengis.net/wfs"
     xmlns:test="http://www.openplans.org/test"
     xmlns:gml="http://www.opengis.net/gml"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.opengis.net/wfs http://schemas.opengis.net/wfs/1.0.0/WFS-transaction.xsd http://www.openplans.org http://localhost:8080/geoserver/wfs/DescribeFeatureType?typename=test:line">
+    xsi:schemaLocation="http://www.opengis.net/wfs http://schemas.opengis.net/wfs/1.0.0/WFS-transaction.xsd http://www.openplans.org http://${host}:8080/geoserver/wfs/DescribeFeatureType?typename=test:line">
     <wfs:Insert>
       <${layerName}>
         <${workspace}:geom>
-          <gml:MultiLineString srsName="http://www.opengis.net/gml/srs/epsg.xml#32634">
+          <gml:MultiLineString srsName="http://www.opengis.net/gml/srs/epsg.xml#4326">
             <gml:lineStringMember>
               <gml:LineString>
                 <gml:coordinates decimal="." cs="," ts=" ">
@@ -2197,16 +2279,16 @@ drawFeatureWfs.addEventListener("click", (e) => {
       // Join the formatted data by newline
       formattedCoordinates = formattedData.join("\n");
       console.log("Polygon Coordinates:", formattedCoordinates);
-      body = `<wfs:Transaction service="WFS" version="1.0.0"
+      body = `<wfs:Transaction service="WFS" version="1.1.0"
     xmlns:wfs="http://www.opengis.net/wfs"
     xmlns:test="http://www.openplans.org/test"
     xmlns:gml="http://www.opengis.net/gml"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.opengis.net/wfs http://schemas.opengis.net/wfs/1.0.0/WFS-transaction.xsd http://www.openplans.org http://localhost:8080/geoserver/wfs/DescribeFeatureType?typename=test:line">
+    xsi:schemaLocation="http://www.opengis.net/wfs http://schemas.opengis.net/wfs/1.0.0/WFS-transaction.xsd http://www.openplans.org http://${host}:8080/geoserver/wfs/DescribeFeatureType?typename=test:line">
     <wfs:Insert>
       <${layerName}>
         <${workspace}:geom>
-          <gml:MultiLineString srsName="http://www.opengis.net/gml/srs/epsg.xml#32634">
+          <gml:MultiLineString srsName="http://www.opengis.net/gml/srs/epsg.xml#4326">
             <gml:lineStringMember>
               <gml:LineString>
                 <gml:coordinates decimal="." cs="," ts=" ">
@@ -2221,18 +2303,18 @@ drawFeatureWfs.addEventListener("click", (e) => {
     </wfs:Insert>
     </wfs:Transaction>`;
     } else if (layerType === "Point") {
-      formattedCoordinates = coordinates.join(",");
+      formattedCoordinates = [coordinates[1], coordinates[0]].join(",");
       console.log("Point Coordinates:", formattedCoordinates);
-      body = `<wfs:Transaction service="WFS" version="1.0.0"
+      body = `<wfs:Transaction service="WFS" version="1.1.0"
       xmlns:wfs="http://www.opengis.net/wfs"
       xmlns:test="http://www.openplans.org/test"
       xmlns:gml="http://www.opengis.net/gml"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="http://www.opengis.net/wfs http://schemas.opengis.net/wfs/1.0.0/WFS-transaction.xsd http://www.openplans.org http://localhost:8080/geoserver/wfs/DescribeFeatureType?typename=test:line">
+      xsi:schemaLocation="http://www.opengis.net/wfs http://schemas.opengis.net/wfs/1.0.0/WFS-transaction.xsd http://www.openplans.org http://${host}:8080/geoserver/wfs/DescribeFeatureType?typename=test:line">
       <wfs:Insert>
         <${layerName}>
           <${workspace}:geom>
-          <gml:Point srsDimension="2" srsName="urn:x-ogc:def:crs:EPSG:32634">
+          <gml:Point srsDimension="2" srsName="urn:x-ogc:def:crs:EPSG:4326">
           <gml:coordinates xmlns:gml="http://www.opengis.net/gml"
           decimal="." cs="," ts=" ">${formattedCoordinates}</gml:coordinates>
           </gml:Point>
@@ -2243,7 +2325,7 @@ drawFeatureWfs.addEventListener("click", (e) => {
       </wfs:Transaction>`;
     }
 
-    url = "http://localhost:8080/geoserver/test/ows";
+    url = `http://${host}:8080/geoserver/test/ows`;
 
     const options = {
       method: "POST",
@@ -2293,7 +2375,7 @@ deleteWFS.addEventListener("click", (e) => {
     source.removeFeature(feature);
     const selectedFeatureValueID = feature.get("id");
     // You can perform any other operations with the feature here
-    url = "http://localhost:8080/geoserver/test/ows";
+    url = `http://${host}:8080/geoserver/test/ows`;
     const body = `<wfs:Transaction service="WFS" version="1.0.0"
                   xmlns:cdf="http://www.opengis.net/cite/data"
                   xmlns:ogc="http://www.opengis.net/ogc"
@@ -2449,7 +2531,7 @@ function saveChanges(properties) {
 
   console.log(transactionXML);
   // Send the transaction request to the WFS server
-  fetch("http://localhost:8080/geoserver/test/ows", {
+  fetch(`http://${host}:8080/geoserver/test/ows`, {
     method: "POST",
     headers: {
       "Content-Type": "text/xml",
@@ -2548,11 +2630,11 @@ saveToLayerButton.addEventListener("click", () => {
 });
 
 function updatePropertyID(featureID) {
-  url = "http://localhost:8080/geoserver/test/ows";
+  url = `http://${host}:8080/geoserver/test/ows`;
   featureIDvalue = featureID;
 
   var updateBody = `
-    <wfs:Transaction service="WFS" version="1.0.0"
+    <wfs:Transaction service="WFS" version="1.1.0"
     xmlns:topp="http://www.openplans.org/topp"
     xmlns:ogc="http://www.opengis.net/ogc"
     xmlns:wfs="http://www.opengis.net/wfs">
@@ -2657,31 +2739,20 @@ const addItemToLegend = () => {
 
 addItemToLegend();
 
-// ___________________________________________________________________________________________________________
-//ADD LAYER GROUP
-let layerGroupNameValue,
-  selectedDropDownLayer,
-  selectedDropDownGroup,
-  selectedStyle;
+// DISPLAY CHART
+const exportPDFButton = document.getElementById("exportPDF");
+let selectedLayerInChart, link;
 
-const addLayerGroupButton = document.getElementById("addLayerGroupButton");
+const selectLayer = () => {
+  const layerLabelElement = document.createElement("label");
+  layerLabelElement.id = "layerDropdownLabel";
+  layerLabelElement.textContent = "Layer:";
+  document.body.appendChild(layerLabelElement);
 
-const modal = document.getElementById("addLayerGroupModal");
+  const layerDropdown = document.createElement("select");
+  layerDropdown.id = "layerDropdown";
 
-const span = document.getElementsByClassName("close")[1];
-addLayerGroupButton.addEventListener("click", function () {
-  modal.style.display = "block";
-});
-
-span.onclick = function () {
-  modal.style.display = "none";
-};
-const layerDropdown = document.getElementById("layerDropdown");
-
-window.onclick = function (event) {
-  if (event.target == modal) {
-    modal.style.display = "none";
-  }
+  document.body.appendChild(layerDropdown);
 
   layerDropdown.innerHTML = "";
 
@@ -2696,23 +2767,184 @@ window.onclick = function (event) {
     option.text = option.value; // Use layer name as option text
     layerDropdown.appendChild(option);
   });
+
+  // Event listener for layer selection
+  layerDropdown.addEventListener("change", function (event) {
+    selectedLayerInChart = event.target.value;
+
+    // Update the link based on the selected layer
+    link = `http://${host}:8080/geoserver/test/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=${selectedLayerInChart}&maxFeatures=500&outputFormat=application/json`;
+
+    // Generate chart and dropdowns for X-Axis and Y-Axis
+    generateChart();
+  });
+};
+
+const generateChart = () => {
+  // Create label for X-Axis dropdown
+  const xAxisLabelElement = document.createElement("label");
+  xAxisLabelElement.id = "xAxisLabel";
+  xAxisLabelElement.textContent = "X-Axis:";
+  document.body.appendChild(xAxisLabelElement);
+
+  // Create dropdown for X-Axis
+  const xAxisDropdown = document.createElement("select");
+  xAxisDropdown.id = "xAxisDropdown";
+  document.body.appendChild(xAxisDropdown);
+
+  // Create label for Y-Axis dropdown
+  const yAxisLabelElement = document.createElement("label");
+  yAxisLabelElement.id = "yAxisLabel";
+  yAxisLabelElement.textContent = "Y-Axis:";
+  document.body.appendChild(yAxisLabelElement);
+
+  // Create dropdown for Y-Axis
+  const yAxisDropdown = document.createElement("select");
+  yAxisDropdown.id = "yAxisDropdown";
+  document.body.appendChild(yAxisDropdown);
+
+  const submitButton = document.createElement("button");
+  submitButton.id = "submit-chart";
+  submitButton.textContent = "Submit";
+  document.body.appendChild(submitButton);
+
+  submitButton.addEventListener("click", () => {
+    const selectedXAxis = xAxisDropdown.value;
+    const selectedYAxis = yAxisDropdown.value;
+    generateChartWithAxes(selectedXAxis, selectedYAxis);
+  });
+
+  fetch(link)
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      return response.json();
+    })
+    .then((data) => {
+      const features = data.features;
+      // Populate dropdown for X-Axis with property names
+      console.log(features);
+      const xAxisProperties = Object.keys(features[0].properties);
+      xAxisProperties.forEach((property) => {
+        const option = document.createElement("option");
+        option.value = property;
+        option.text = property;
+        xAxisDropdown.appendChild(option);
+      });
+
+      const yAxisProperties = Object.keys(features[0].properties);
+      yAxisProperties.forEach((property) => {
+        const option = document.createElement("option");
+        option.value = property;
+        option.text = property;
+        yAxisDropdown.appendChild(option);
+      });
+    })
+    .catch((error) => {
+      console.error("There was a problem with the fetch operation:", error);
+    });
+};
+
+const generateChartWithAxes = (xAxisProperty, yAxisProperty) => {
+  const canvas = document.createElement("canvas");
+  canvas.id = "myChart";
+  document.body.appendChild(canvas);
+
+  const ctx = document.getElementById("myChart");
+  let myChart;
+
+  const pdf = new jsPDF();
+
+  const labels = [];
+  const dataValues = [];
+
+  const config = {
+    type: "bar",
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: "Number of Visitors",
+          data: dataValues,
+          borderWidth: 1,
+        },
+      ],
+    },
+    options: {
+      scales: {
+        y: {
+          beginAtZero: true,
+        },
+      },
+    },
+  };
+  myChart = new Chart(ctx, config);
+};
+
+exportPDFButton.addEventListener("click", () => {
+  selectLayer();
+});
+
+// ___________________________________________________________________________________________________________
+//ADD LAYER GROUP
+let layerGroupNameValue,
+  selectedDropDownLayer1,
+  selectedDropDownLayer,
+  selectedDropDownGroup,
+  selectedStyle;
+
+const addLayerGroupButton = document.getElementById("addLayerGroupButton");
+
+const modal = document.getElementById("addLayerGroupModal");
+
+const span = document.getElementsByClassName("close")[1];
+
+const layerDropdown = document.getElementById("layerDropdown");
+
+addLayerGroupButton.addEventListener("click", function () {
+  modal.style.display = "block";
+
+  layerDropdown.innerHTML = "";
+
+  const defaultOption = document.createElement("option");
+  defaultOption.value = "";
+  defaultOption.text = "Select a layer";
+  layerDropdown.appendChild(defaultOption);
+
+  layersArray.forEach((layer) => {
+    const option = document.createElement("option");
+    option.value = layer.getSource().getParams().LAYERS;
+    option.text = option.value; // Use layer name as option text
+    layerDropdown.appendChild(option);
+  });
+});
+
+span.onclick = function () {
+  modal.style.display = "none";
 };
 
 layerDropdown.addEventListener("change", function () {
-  selectedDropDownLayer = layerDropdown.value;
-  console.log("Selected Layer:", selectedDropDownLayer);
+  selectedDropDownLayer1 = layerDropdown.value;
+  console.log("Selected Layer:", selectedDropDownLayer1);
+  getLayerStyle(selectedDropDownLayer1);
 });
 
 document.getElementById("submitBtn").addEventListener("click", function () {
   const layerGroupNameInput = document.getElementById("layerGroupName");
   layerGroupNameValue = layerGroupNameInput.value;
-  addLayerGroup();
+  addLayerGroup(layerGroupNameValue, selectedDropDownLayer1, selectedStyle);
   modal.style.display = "none";
 });
 
-function addLayerGroup() {
+function addLayerGroup(
+  layerGroupNameValue,
+  selectedDropDownLayer1,
+  selectedStyle
+) {
   // Send request to create layer group
-  fetch("http://localhost:8080/geoserver/rest/layergroups", {
+
+  fetch(`http://${host}:8080/geoserver/rest/layergroups`, {
     method: "POST",
     headers: {
       "Content-Type": "text/xml",
@@ -2721,10 +2953,10 @@ function addLayerGroup() {
     body: `<layerGroup>
     <name>${layerGroupNameValue}</name>
     <layers>
-      <layer>${selectedDropDownLayer}</layer>
+      <layer>${selectedDropDownLayer1}</layer>
     </layers>
     <styles>
-      <style>point</style>
+      <style>${selectedStyle}</style>
     </styles>
     <bounds>
         <minx>126530.81806662556</minx>
@@ -2742,69 +2974,8 @@ function addLayerGroup() {
     .catch((error) => console.error("Error creating layer group:", error));
 }
 
-// _______________________________________________________________________________
-const exportPDFButton = document.getElementById("exportPDF");
-
-exportPDFButton.addEventListener("click", () => {
-  const canvas = document.createElement("canvas");
-  canvas.id = "myChart";
-  document.body.appendChild(canvas);
-
-  const ctx = document.getElementById("myChart");
-  let myChart;
-
-  const pdf = new jsPDF();
-  const link =
-    "http://localhost:8080/geoserver/test/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=test:adm_units&maxFeatures=50&outputFormat=application/json";
-
-  fetch(link)
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-      return response.json();
-    })
-    .then((data) => {
-      const features = data.features;
-
-      const labels = features.map((feature) => feature.properties.name);
-      const dataValues = features.map(
-        (feature) => feature.properties.viti_2024
-      );
-
-      const config = {
-        type: "bar",
-        data: {
-          labels: labels,
-          datasets: [
-            {
-              label: "Number of Visitors",
-              data: dataValues,
-              borderWidth: 1,
-            },
-          ],
-        },
-        options: {
-          scales: {
-            y: {
-              beginAtZero: true,
-            },
-          },
-        },
-      };
-      myChart = new Chart(ctx, config);
-      const image = canvas.toDataURL("image/png");
-      const img = new Image();
-      img.src = image;
-      pdf.addImage(img, "PNG", 10, 20, 180, 90); // Adjust position and size as needed
-      document.body.appendChild(img);
-    })
-    .catch((error) => {
-      console.error("There was a problem with the fetch operation:", error);
-    });
-});
-
 // ________________________________________________________________________
+// UPDATE LAYER GROUPS
 
 const addLayerToGroupButton = document.getElementById("updateLayerGroupBtn");
 
@@ -2823,7 +2994,7 @@ span2.onclick = function () {
 const layerGroupDropdown = document.getElementById("layerGroupDropdown");
 
 function getAllLayerGroups() {
-  fetch("http://localhost:8080/geoserver/rest/layergroups.json", {
+  fetch(`http://${host}:8080/geoserver/rest/layergroups.json`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -2899,7 +3070,7 @@ function updateLayerGroupWithNewLayer(
   const layerNameOnly = text.split(":")[1];
   const encodedLayerGroupName = encodeURIComponent(selectedDropDownGroup);
   fetch(
-    `http://localhost:8080/geoserver/rest/layergroups/${encodedLayerGroupName}`,
+    `http://${host}:8080/geoserver/rest/layergroups/${encodedLayerGroupName}`,
     {
       method: "GET",
       headers: {
@@ -2926,7 +3097,7 @@ function updateLayerGroupWithNewLayer(
       layerGroupData.publishables.published.push({
         "@type": "layer",
         name: `${selectedDropDownLayer}`,
-        href: `http://localhost:8080/geoserver/rest/workspaces/test/layers/${layerNameOnly}.json`,
+        href: `http://${host}:8080/geoserver/rest/workspaces/test/layers/${layerNameOnly}.json`,
       });
 
       // Ensure styles.style is an array
@@ -2935,7 +3106,7 @@ function updateLayerGroupWithNewLayer(
       }
       layerGroupData.styles.style.push({
         name: `${selectedStyle}`,
-        href: `http://localhost:8080/geoserver/rest/styles/${selectedStyle}.json`,
+        href: `http://${host}:8080/geoserver/rest/styles/${selectedStyle}.json`,
       });
 
       const updatedLayerGroupData = JSON.stringify({
@@ -2944,7 +3115,7 @@ function updateLayerGroupWithNewLayer(
 
       console.log(updatedLayerGroupData);
       return fetch(
-        `http://localhost:8080/geoserver/rest/layergroups/${encodedLayerGroupName}`,
+        `http://${host}:8080/geoserver/rest/layergroups/${encodedLayerGroupName}`,
         {
           method: "PUT",
           headers: {
@@ -2967,7 +3138,7 @@ function updateLayerGroupWithNewLayer(
 
 function getLayerStyle(selectedDropDownLayer) {
   fetch(
-    `http://localhost:8080/geoserver/rest/layers/${selectedDropDownLayer}.json`,
+    `http://${host}:8080/geoserver/rest/layers/${selectedDropDownLayer}.json`,
     {
       method: "GET",
       headers: {
