@@ -2741,7 +2741,10 @@ addItemToLegend();
 
 // DISPLAY CHART
 const exportPDFButton = document.getElementById("exportPDF");
-let selectedLayerInChart, link;
+let selectedLayerInChart,
+  link,
+  myChart,
+  selectedChartType = "bar";
 
 const selectLayer = () => {
   const layerLabelElement = document.createElement("label");
@@ -2803,6 +2806,27 @@ const generateChart = () => {
   yAxisDropdown.id = "yAxisDropdown";
   document.body.appendChild(yAxisDropdown);
 
+  const chartTypes = ["bar", "line", "radar", "polarArea"];
+
+  const chartTypeLabel = document.createElement("label");
+  chartTypeLabel.textContent = "Chart Type:";
+  document.body.appendChild(chartTypeLabel);
+
+  const chartTypeDropdown = document.createElement("select");
+  chartTypeDropdown.id = "chartTypeDropdown";
+  document.body.appendChild(chartTypeDropdown);
+
+  chartTypes.forEach((type) => {
+    const option = document.createElement("option");
+    option.value = type;
+    option.text = type;
+    chartTypeDropdown.appendChild(option);
+  });
+
+  chartTypeDropdown.addEventListener("change", (e) => {
+    selectedChartType = e.target.value;
+  });
+
   const submitButton = document.createElement("button");
   submitButton.id = "submit-chart";
   submitButton.textContent = "Submit";
@@ -2811,7 +2835,23 @@ const generateChart = () => {
   submitButton.addEventListener("click", () => {
     const selectedXAxis = xAxisDropdown.value;
     const selectedYAxis = yAxisDropdown.value;
-    generateChartWithAxes(selectedXAxis, selectedYAxis);
+    fetch(link)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        const features = data.features;
+        if (myChart) {
+          myChart.destroy(); // Destroy existing chart if it exists
+        }
+        generateChartWithAxes(features, selectedXAxis, selectedYAxis);
+      })
+      .catch((error) => {
+        console.error("There was a problem with the fetch operation:", error);
+      });
   });
 
   fetch(link)
@@ -2846,26 +2886,25 @@ const generateChart = () => {
     });
 };
 
-const generateChartWithAxes = (xAxisProperty, yAxisProperty) => {
+const generateChartWithAxes = (features, xAxisProperty, yAxisProperty) => {
   const canvas = document.createElement("canvas");
   canvas.id = "myChart";
   document.body.appendChild(canvas);
 
   const ctx = document.getElementById("myChart");
-  let myChart;
 
-  const pdf = new jsPDF();
-
-  const labels = [];
-  const dataValues = [];
+  const labels = features.map((feature) => feature.properties[xAxisProperty]);
+  const dataValues = features.map(
+    (feature) => feature.properties[yAxisProperty]
+  );
 
   const config = {
-    type: "bar",
+    type: selectedChartType,
     data: {
       labels: labels,
       datasets: [
         {
-          label: "Number of Visitors",
+          label: "Value",
           data: dataValues,
           borderWidth: 1,
         },
