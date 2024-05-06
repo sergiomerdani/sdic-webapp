@@ -30,7 +30,7 @@ import LayerSwitcher from "ol-ext/control/LayerSwitcher";
 import LayerGroup from "ol/layer/Group";
 import SearchNominatim from "ol-ext/control/SearchNominatim";
 import Feature from "ol/Feature";
-import { Point, LineString } from "ol/geom";
+import { Point, LineString, Circle } from "ol/geom";
 import Overlay from "ol/Overlay.js";
 import {
   Style,
@@ -60,7 +60,8 @@ import { optionsFromCapabilities } from "ol/source/WMTS";
 import WMTS from "ol/source/WMTS";
 import Layer from "ol/layer/Layer";
 import { Chart } from "chart.js/auto";
-import { toLonLat } from "ol/proj";
+import { toLonLat, getPointResolution } from "ol/proj";
+import { createRegularPolygon } from "ol/interaction/Draw";
 
 proj4.defs("EPSG:4326", "+proj=longlat +datum=WGS84 +no_defs +type=crs");
 register(proj4);
@@ -1451,58 +1452,38 @@ getXYCoordsBtn.addEventListener("click", function () {
 // Assuming you have included Proj4js library in your project
 
 function calculateScale() {
-  // Get the map's view
   const view = map.getView();
 
-  // Get the resolution of the view (degrees per pixel)
   const resolution = view.getResolution();
-
-  // Get the center coordinate of the map
   const center = view.getCenter();
-
-  // Convert degrees to meters at the center latitude
-  const metersPerDegreeLongitude =
-    111412.84 * Math.cos(center[1]) -
-    93.5 * Math.cos(3 * center[1]) +
-    0.118 * Math.cos(5 * center[1]);
-
-  // Get the width of the map container in pixels
+  const projection = view.getProjection();
+  const meterPerMapUnit = projection.getMetersPerUnit();
   const mapWidth = map.getTargetElement().clientWidth;
-
-  // Calculate the width of the map in meters
-  const mapWidthMeters = resolution * mapWidth * metersPerDegreeLongitude;
+  const mapWidthMeters = resolution * mapWidth * meterPerMapUnit;
 
   const dpi = 96;
   const inchesPerMeter = 39.3701;
-  const scale = (mapWidthMeters * inchesPerMeter) / dpi;
+  const scale = resolution * meterPerMapUnit * inchesPerMeter * dpi;
 
   const scaleInput = document.getElementById("scaleInput");
   scaleInput.value = "1:" + scale.toFixed(0);
 }
 
-// Function to set the map scale based on user input
 function setMapScale() {
   const inputElement = document.getElementById("scaleInput");
   const scaleValue = inputElement.value.trim();
 
-  // Check if the scaleValue has the correct format "1:xxxxx"
   const scaleRegex = /^1:(\d+)$/;
   const scaleMatch = scaleValue.match(scaleRegex);
 
   if (scaleMatch) {
     const scaleNumber = parseInt(scaleMatch[1]);
-
-    // Calculate the resolution using the inverse of the formula in calculateScale()
+    const projection = map.getView().getProjection();
+    const meterPerMapUnit = projection.getMetersPerUnit();
     const view = map.getView();
-    const units = view.getProjection().getUnits();
-    const inchesPerUnit = {
-      m: 39.3701,
-      ft: 12,
-    };
+    const inchesPerMeter = 39.3701;
     const dpi = 96;
-    const resolution = scaleNumber / (inchesPerUnit[units] * dpi);
-
-    // Set the calculated resolution to the map view
+    const resolution = scaleNumber / (inchesPerMeter * dpi * meterPerMapUnit);
     view.setResolution(resolution);
   } else {
     console.error("Invalid scale format. Please use the format '1:xxxxx'.");
@@ -3198,3 +3179,38 @@ function getLayerStyle(selectedDropDownLayer) {
       console.error("There was a problem with the fetch operation:", error);
     });
 }
+
+// ________________________________________________________________________
+
+var drawCircleInMeter = function (map, radius) {
+  var view = map.getView();
+  var projection = view.getProjection();
+  var resolutionAtEquator = view.getResolution();
+  var center = map.getView().getCenter();
+
+  var pointResolution = getPointResolution(
+    projection,
+    resolutionAtEquator,
+    center
+  );
+  console.log(projection.getMetersPerUnit());
+  var resolutionFactor = resolutionAtEquator / pointResolution;
+  var radius = (radius / 111194.87428468118) * resolutionFactor;
+
+  var circle = new Circle(center, radius);
+  var circleFeature = new Feature(circle);
+
+  var vectorSource = new VectorSource({
+    projection: "EPSG:4326",
+  });
+  vectorSource.addFeature(circleFeature);
+  var vectorLayer = new VectorLayer({
+    source: vectorSource,
+  });
+
+  map.addLayer(vectorLayer);
+};
+
+document.getElementById("draw-circle").addEventListener("click", () => {
+  drawCircleInMeter(map, 1000);
+});
