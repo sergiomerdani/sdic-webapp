@@ -30,7 +30,7 @@ import LayerSwitcher from "ol-ext/control/LayerSwitcher";
 import LayerGroup from "ol/layer/Group";
 import SearchNominatim from "ol-ext/control/SearchNominatim";
 import Feature from "ol/Feature";
-import { Point, LineString, Circle } from "ol/geom";
+import { Point, LineString, Circle, Polygon } from "ol/geom";
 import Overlay from "ol/Overlay.js";
 import {
   Style,
@@ -62,6 +62,7 @@ import Layer from "ol/layer/Layer";
 import { Chart } from "chart.js/auto";
 import { toLonLat, getPointResolution } from "ol/proj";
 import { createRegularPolygon } from "ol/interaction/Draw";
+import { fromCircle } from "ol/geom/Polygon";
 
 proj4.defs("EPSG:4326", "+proj=longlat +datum=WGS84 +no_defs +type=crs");
 register(proj4);
@@ -2154,7 +2155,7 @@ function selectStyle(feature) {
   }
 }
 
-let selectSingleClick, featureID, url, extent;
+let selectSingleClick, featureID, url, extent, selectedFeatures;
 
 selectFeature.addEventListener("click", (e) => {
   map.removeInteraction(draw);
@@ -2162,8 +2163,7 @@ selectFeature.addEventListener("click", (e) => {
   selectSingleClick = new Select({ style: selectStyle, hitTolerance: 5 });
   map.addInteraction(selectSingleClick);
   selectSingleClick.on("select", function (event) {
-    console.log(event);
-    var selectedFeatures = event.selected;
+    selectedFeatures = event.selected;
     var deselectedFeatures = event.deselected;
 
     selectedFeatures.forEach(function (feature) {
@@ -3175,7 +3175,7 @@ function getLayerStyle(selectedDropDownLayer) {
 //   });
 // };
 
-let X, Y, center;
+let X, Y, center, polygonFromCircle;
 
 function getCenterOfExtent(Extent) {
   X = Extent[0] + (Extent[2] - Extent[0]) / 2;
@@ -3200,7 +3200,14 @@ var drawCircleInMeter = function (map, radius, center) {
 
   var circle = new Circle(center, radius);
   var circleFeature = new Feature(circle);
-  console.log(circleFeature);
+
+  // Create a polygon geometry from the circle geometry
+  var polygon = fromCircle(circle);
+
+  // Create a feature from the polygon geometry
+  polygonFromCircle = new Feature(polygon);
+  console.log(polygonFromCircle);
+
   var vectorSource = new VectorSource({
     projection: "EPSG:3857",
   });
@@ -3210,10 +3217,13 @@ var drawCircleInMeter = function (map, radius, center) {
   });
 
   map.addLayer(vectorLayer);
-  saveBufferToLayer(circleFeature);
 };
 
 document.getElementById("draw-circle").addEventListener("click", () => {
+  if (layerName !== "layer_3857") {
+    alert("This function is applicable only in oecm_layer");
+    return;
+  }
   var popup = new Overlay({
     element: document.getElementById("input-popup"), // The popup content element
     positioning: "bottom-center", // Position the popup below the button
@@ -3231,7 +3241,7 @@ document.getElementById("draw-circle").addEventListener("click", () => {
     if (!isNaN(radius)) {
       // If the radius value is valid, call drawCircleInMeter function
       drawCircleInMeter(map, radius, center);
-      saveBufferToLayer(feature);
+      saveBufferToLayer(polygonFromCircle);
 
       map.removeOverlay(popup); // Close the popup
     } else {
@@ -3267,12 +3277,9 @@ function generateCenterOfPOlygon(xCoord, yCoord) {
 //SAVE BUFFER IN OECM LAYER
 
 function saveBufferToLayer(feature) {
-  const featureOne = feature.getGeometry();
-  const coords = featureOne.flatCoordinates;
-  console.log(featureOne.flatCoordinates);
   const coordinates = feature.getGeometry().getCoordinates();
   console.log(coordinates);
-  const formattedData = coords.map((set) =>
+  const formattedData = coordinates.map((set) =>
     set
       .map((coord) => coord.join(","))
       .slice(0, -1)
