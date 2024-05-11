@@ -41,7 +41,7 @@ import {
   RegularShape,
   Icon,
 } from "ol/style";
-import { getLength, getArea } from "ol/sphere";
+import { getLength, getArea, getDistance } from "ol/sphere";
 import { Modify, Draw, Select } from "ol/interaction";
 import Graticule from "ol/layer/Graticule.js";
 import Geolocation from "ol/Geolocation.js";
@@ -515,8 +515,8 @@ const map = new Map({
   controls: defaults({ attribution: false }).extend(mapControls),
   layers: [baseLayerGroup, asigLayers, addressSystem],
   view: new View({
-    projection: wgs84Proj,
-    center: wgs84Center,
+    projection: "EPSG:3857",
+    center: [2206144.619624, 5060991.189047],
     zoom: 5.8,
     maxZoom: 20,
   }),
@@ -635,9 +635,9 @@ toggleButton.addEventListener("click", function () {
 //________________________________________________________________________________________________________
 //Geolocation API
 const geolocationButton = document.getElementById("getGeolocation");
-let isTracking = false; // Track the current state of geolocation tracking
-const geolocation = new Geolocation(); // Declare geolocation variable
-let currentPositionLayer; // Declare currentPositionLayer variable
+let isTracking = false;
+const geolocation = new Geolocation();
+let currentPositionLayer;
 const originalButtonHTML = geolocationButton.innerHTML;
 
 geolocationButton.addEventListener("click", function () {
@@ -823,6 +823,8 @@ const segmentStyle = new Style({
 const segmentStyles = [segmentStyle];
 
 const formatLength = function (line) {
+  // const transformedLine = line.clone().transform(wgs84Proj, "EPSG:3857");
+  // const length = getLength(transformedLine);
   const length = getLength(line);
   let output;
   if (length > 100) {
@@ -834,6 +836,8 @@ const formatLength = function (line) {
 };
 
 const formatArea = function (polygon) {
+  // const transformedPolygon = polygon.clone().transform(wgs84Proj, "EPSG:3857");
+  // const area = getGeodesicArea(transformedPolygon);
   const area = getArea(polygon);
   let output;
   if (area > 10000) {
@@ -1142,20 +1146,6 @@ function getInfo(event) {
 
   const maxPropertiesToShow = 10;
 
-  // // Get visible layers in the layer groups in reverse order (uppermost layer first)
-  // const layerGroupOne = readGroupLayers(layerGroupsArray[2]);
-  // const layerGroupTwo = readGroupLayers(layerGroupsArray[3]);
-  // const layerGroupThree = readGroupLayers(layerGroupsArray[4]);
-  // const layerGroupFour = readGroupLayers(layerGroupsArray[5]);
-
-  // // Get visible layers in the "Local Data" layer group in reverse order (uppermost layer first)
-  // visibleLayers = [
-  //   ...layerGroupOne,
-  //   ...layerGroupTwo,
-  //   ...layerGroupThree,
-  //   ...layerGroupFour,
-  // ];
-
   const visibleLayers = [];
 
   // Iterate over layer groups starting from index 2
@@ -1422,34 +1412,6 @@ getXYCoordsBtn.addEventListener("click", function () {
   map.un("click", getInfoClickListener);
   map.on("click", getXYClickListener);
 });
-
-// // CALCULATE SCALE
-// function calculateScale() {
-//   // Get the map's view
-//   const view = map.getView();
-//   // Get the resolution of the view (units per pixel)
-//   const resolution = view.getResolution();
-
-//   // Get the units used in the map (e.g., meters, feet)
-//   const units = view.getProjection().getUnits();
-//   console.log(units);
-//   // Define the number of inches per unit based on your map's projection
-//   const inchesPerUnit = {
-//     m: 39.37007874,
-//     ft: 12,
-//   };
-
-//   // Get the dots per inch of your display (e.g., standard is 96 dpi)
-//   const dpi = 96;
-
-//   // Calculate the scale
-//   const scale = resolution * inchesPerUnit[units] * dpi;
-
-//   // Update the input value with the calculated scale
-//   const scaleInput = document.getElementById("scaleInput");
-//   scaleInput.value = "1:" + scale.toFixed(0);
-// }
-// Assuming you have included Proj4js library in your project
 
 function calculateScale() {
   const view = map.getView();
@@ -2067,7 +2029,7 @@ modifyfeature.addEventListener("click", (e) => {
         <wfs:Property>
           <wfs:Name>geom</wfs:Name>
           <wfs:Value>
-            <gml:Polygon srsName="EPSG:4326">
+            <gml:Polygon srsName="EPSG:3857">
               <gml:outerBoundaryIs>
                 <gml:LinearRing>
                   <gml:coordinates>${formattedCoordinates}</gml:coordinates>
@@ -2096,7 +2058,7 @@ modifyfeature.addEventListener("click", (e) => {
           <wfs:Property>
             <wfs:Name>geom</wfs:Name>
             <wfs:Value>
-              <gml:MultiLineString srsName="http://www.opengis.net/gml/srs/epsg.xml#4326">
+              <gml:MultiLineString srsName="http://www.opengis.net/gml/srs/epsg.xml#3857">
                 <gml:lineStringMember>
                   <gml:LineString>
                     <gml:coordinates>${formattedCoordinates}</gml:coordinates>
@@ -2122,7 +2084,7 @@ modifyfeature.addEventListener("click", (e) => {
         <wfs:Property>
           <wfs:Name>geom</wfs:Name>
           <wfs:Value>
-            <gml:Point srsName="EPSG:4326">
+            <gml:Point srsName="EPSG:3857">
               <gml:coordinates>${formattedCoordinates}</gml:coordinates>
             </gml:Point>
           </wfs:Value>
@@ -2192,13 +2154,28 @@ function selectStyle(feature) {
   }
 }
 
-let selectSingleClick, featureID, url;
+let selectSingleClick, featureID, url, extent;
 
 selectFeature.addEventListener("click", (e) => {
   map.removeInteraction(draw);
   map.removeInteraction(modify);
   selectSingleClick = new Select({ style: selectStyle, hitTolerance: 5 });
   map.addInteraction(selectSingleClick);
+  selectSingleClick.on("select", function (event) {
+    console.log(event);
+    var selectedFeatures = event.selected;
+    var deselectedFeatures = event.deselected;
+
+    selectedFeatures.forEach(function (feature) {
+      console.log("Selected feature:", feature);
+      extent = feature.getGeometry().getExtent();
+    });
+
+    deselectedFeatures.forEach(function (feature) {
+      console.log("Deselected feature:", feature);
+    });
+    getCenterOfExtent(extent);
+  });
 });
 
 const drawFeatureWfs = document.getElementById("drawWfs");
@@ -2221,6 +2198,7 @@ drawFeatureWfs.addEventListener("click", (e) => {
     console.log(feature);
     // Set the ID attribute to the feature
     const coordinates = feature.getGeometry().getCoordinates();
+    console.log(coordinates);
     if (layerType === "LineString") {
       // Map over the array and join each pair of coordinates with a space
       formattedCoordinates = coordinates
@@ -2236,7 +2214,7 @@ drawFeatureWfs.addEventListener("click", (e) => {
     <wfs:Insert>
       <${layerName}>
         <${workspace}:geom>
-          <gml:MultiLineString srsName="http://www.opengis.net/gml/srs/epsg.xml#4326">
+          <gml:MultiLineString srsName="http://www.opengis.net/gml/srs/epsg.xml#3857">
             <gml:lineStringMember>
               <gml:LineString>
                 <gml:coordinates decimal="." cs="," ts=" ">
@@ -2269,7 +2247,7 @@ drawFeatureWfs.addEventListener("click", (e) => {
     <wfs:Insert>
       <${layerName}>
         <${workspace}:geom>
-          <gml:MultiLineString srsName="http://www.opengis.net/gml/srs/epsg.xml#4326">
+          <gml:MultiLineString srsName="http://www.opengis.net/gml/srs/epsg.xml#3857">
             <gml:lineStringMember>
               <gml:LineString>
                 <gml:coordinates decimal="." cs="," ts=" ">
@@ -2284,7 +2262,7 @@ drawFeatureWfs.addEventListener("click", (e) => {
     </wfs:Insert>
     </wfs:Transaction>`;
     } else if (layerType === "Point") {
-      formattedCoordinates = [coordinates[1], coordinates[0]].join(",");
+      formattedCoordinates = [coordinates[0], coordinates[1]].join(",");
       console.log("Point Coordinates:", formattedCoordinates);
       body = `<wfs:Transaction service="WFS" version="1.1.0"
       xmlns:wfs="http://www.opengis.net/wfs"
@@ -2295,7 +2273,7 @@ drawFeatureWfs.addEventListener("click", (e) => {
       <wfs:Insert>
         <${layerName}>
           <${workspace}:geom>
-          <gml:Point srsDimension="2" srsName="urn:x-ogc:def:crs:EPSG:4326">
+          <gml:Point srsDimension="2" srsName="urn:x-ogc:def:crs:EPSG:3857">
           <gml:coordinates xmlns:gml="http://www.opengis.net/gml"
           decimal="." cs="," ts=" ">${formattedCoordinates}</gml:coordinates>
           </gml:Point>
@@ -2425,6 +2403,7 @@ function getFeatureInfo() {
       pixel,
       function (feature, layer) {
         if (feature) {
+          console.log(feature);
           featureID = feature.getId();
 
           source = layer.getSource();
@@ -3182,12 +3161,34 @@ function getLayerStyle(selectedDropDownLayer) {
 
 // ________________________________________________________________________
 
-var drawCircleInMeter = function (map, radius) {
+// map.on("singleclick", function (event) {
+//   const coordinate = event.coordinate;
+//   const pixel = event.pixel;
+
+//   displayFeatureInfo(pixel);
+// });
+
+// var displayFeatureInfo = function (pixel) {
+//   map.forEachFeatureAtPixel(pixel, function (feature, layer) {
+//     const extent = feature.getGeometry().getExtent();
+//     getCenterOfExtent(extent);
+//   });
+// };
+
+let X, Y, center;
+
+function getCenterOfExtent(Extent) {
+  X = Extent[0] + (Extent[2] - Extent[0]) / 2;
+  Y = Extent[1] + (Extent[3] - Extent[1]) / 2;
+  center = [X, Y];
+}
+
+var drawCircleInMeter = function (map, radius, center) {
   var view = map.getView();
   var projection = view.getProjection();
   var resolutionAtEquator = view.getResolution();
-  var center = map.getView().getCenter();
-
+  // var center = map.getView().getCenter();
+  console.log(center);
   var pointResolution = getPointResolution(
     projection,
     resolutionAtEquator,
@@ -3195,13 +3196,13 @@ var drawCircleInMeter = function (map, radius) {
   );
   console.log(projection.getMetersPerUnit());
   var resolutionFactor = resolutionAtEquator / pointResolution;
-  var radius = (radius / 111194.87428468118) * resolutionFactor;
+  var radius = (radius / 1) * resolutionFactor;
 
   var circle = new Circle(center, radius);
   var circleFeature = new Feature(circle);
-
+  console.log(circleFeature);
   var vectorSource = new VectorSource({
-    projection: "EPSG:4326",
+    projection: "EPSG:3857",
   });
   vectorSource.addFeature(circleFeature);
   var vectorLayer = new VectorLayer({
@@ -3209,8 +3210,128 @@ var drawCircleInMeter = function (map, radius) {
   });
 
   map.addLayer(vectorLayer);
+  saveBufferToLayer(circleFeature);
 };
 
 document.getElementById("draw-circle").addEventListener("click", () => {
-  drawCircleInMeter(map, 1000);
+  var popup = new Overlay({
+    element: document.getElementById("input-popup"), // The popup content element
+    positioning: "bottom-center", // Position the popup below the button
+    stopEvent: false, // Allow map interactions below the popup
+  });
+  map.addOverlay(popup);
+
+  // Open the popup
+  popup.setPosition(map.getView().getCenter());
+
+  // Event listener for the submit button inside the popup
+  document.getElementById("submit-btn").addEventListener("click", function () {
+    var radiusInput = document.getElementById("radius-input");
+    var radius = parseFloat(radiusInput.value);
+    if (!isNaN(radius)) {
+      // If the radius value is valid, call drawCircleInMeter function
+      drawCircleInMeter(map, radius, center);
+      saveBufferToLayer(feature);
+
+      map.removeOverlay(popup); // Close the popup
+    } else {
+      alert("Please enter a valid radius."); // Show an alert if the radius value is invalid
+      radiusInput.focus(); // Focus on the input field
+    }
+  });
+
+  // Event listener for the close button inside the popup
+  document.getElementById("close-popup").addEventListener("click", function () {
+    map.removeOverlay(popup); // Close the popup when the close button is clicked
+  });
+  map.removeInteraction(selectSingleClick);
 });
+
+function generateCenterOfPOlygon(xCoord, yCoord) {
+  var coordinates = [xCoord, yCoord];
+  var pointGeometry = new Point(coordinates);
+
+  var pointFeature = new Feature({
+    geometry: pointGeometry,
+  });
+
+  var vectorLayerPoint = new VectorLayer({
+    source: new VectorSource({
+      features: [pointFeature],
+    }),
+  });
+
+  map.addLayer(vectorLayerPoint);
+}
+
+//SAVE BUFFER IN OECM LAYER
+
+function saveBufferToLayer(feature) {
+  const featureOne = feature.getGeometry();
+  const coords = featureOne.flatCoordinates;
+  console.log(featureOne.flatCoordinates);
+  const coordinates = feature.getGeometry().getCoordinates();
+  console.log(coordinates);
+  const formattedData = coords.map((set) =>
+    set
+      .map((coord) => coord.join(","))
+      .slice(0, -1)
+      .join(" ")
+  );
+  // Join the formatted data by newline
+  formattedCoordinates = formattedData.join("\n");
+  console.log("Polygon Coordinates:", formattedCoordinates);
+  body = `<wfs:Transaction service="WFS" version="1.1.0"
+    xmlns:wfs="http://www.opengis.net/wfs"
+    xmlns:test="http://www.openplans.org/test"
+    xmlns:gml="http://www.opengis.net/gml"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.opengis.net/wfs http://schemas.opengis.net/wfs/1.0.0/WFS-transaction.xsd http://www.openplans.org http://${host}:8080/geoserver/wfs/DescribeFeatureType?typename=test:line">
+    <wfs:Insert>
+      <layer_3857>
+        <test:geom>
+          <gml:MultiLineString srsName="http://www.opengis.net/gml/srs/epsg.xml#3857">
+            <gml:lineStringMember>
+              <gml:LineString>
+                <gml:coordinates decimal="." cs="," ts=" ">
+                ${formattedCoordinates}
+                </gml:coordinates>
+              </gml:LineString>
+            </gml:lineStringMember>
+          </gml:MultiLineString>
+        </test:geom>
+        <test:TYPE>alley</test:TYPE>
+      </layer_3857>
+    </wfs:Insert>
+    </wfs:Transaction>`;
+
+  url = `http://${host}:8080/geoserver/test/ows`;
+
+  const options = {
+    method: "POST",
+    headers: {
+      "Content-Type": "text/xml",
+    },
+    body: body,
+  };
+
+  // Make the POST request using the Fetch API
+  fetch(url, options)
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      // Parse the JSON response
+      return response.text();
+    })
+    .then((data) => {
+      source.refresh();
+
+      // Handle the data returned by the server
+      console.log("Response from server:", data);
+    })
+    .catch((error) => {
+      // Handle errors that occur during the fetch request
+      console.error("There was a problem with your fetch operation:", error);
+    });
+}
