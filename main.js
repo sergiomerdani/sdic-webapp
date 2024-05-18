@@ -5,7 +5,7 @@ import { OSM, BingMaps, Vector as VectorSource, XYZ } from "ol/source";
 import VectorLayer from "ol/layer/Vector";
 import proj4 from "proj4";
 import { register } from "ol/proj/proj4";
-import { Projection, fromLonLat, transform, useGeographic } from "ol/proj";
+import { Projection, fromLonLat, transform } from "ol/proj";
 import Tile from "ol/layer/Tile";
 import TileWMS from "ol/source/TileWMS.js";
 import GeoJSON from "ol/format/GeoJSON.js";
@@ -13,10 +13,7 @@ import {
   Attribution,
   defaults,
   FullScreen,
-  ZoomSlider,
   MousePosition,
-  ScaleLine,
-  OverviewMap,
   Rotate,
 } from "ol/control";
 import DragRotate from "ol/interaction/DragRotate";
@@ -30,7 +27,6 @@ import LayerSwitcher from "ol-ext/control/LayerSwitcher";
 import LayerGroup from "ol/layer/Group";
 import SearchNominatim from "ol-ext/control/SearchNominatim";
 import Feature from "ol/Feature";
-import { Point, LineString, Circle, Polygon } from "ol/geom";
 import Overlay from "ol/Overlay.js";
 import {
   Style,
@@ -41,7 +37,17 @@ import {
   RegularShape,
   Icon,
 } from "ol/style";
-import { getLength, getArea, getDistance } from "ol/sphere";
+import {
+  LineString,
+  MultiLineString,
+  MultiPoint,
+  MultiPolygon,
+  Point,
+  Polygon,
+  Circle,
+} from "ol/geom.js";
+import LinearRing from "ol/geom/LinearRing";
+import { getLength, getArea } from "ol/sphere";
 import { Modify, Draw, Select } from "ol/interaction";
 import Graticule from "ol/layer/Graticule.js";
 import Geolocation from "ol/Geolocation.js";
@@ -50,19 +56,19 @@ import PrintDialog from "ol-ext/control/PrintDialog";
 import CanvasAttribution from "ol-ext/control/CanvasAttribution";
 import CanvasScaleLine from "ol-ext/control/CanvasScaleLine";
 import CanvasTitle from "ol-ext/control/CanvasTitle";
-import CenterPosition from "ol-ext/control/CenterPosition";
 import ol_control_Legend from "ol-ext/control/Legend";
 import ol_legend_Legend from "ol-ext/legend/Legend";
 import { jsPDF } from "jspdf";
-import SelectControl from "ol-ext/control/Select";
 import { WMTSCapabilities } from "ol/format";
 import { optionsFromCapabilities } from "ol/source/WMTS";
 import WMTS from "ol/source/WMTS";
-import Layer from "ol/layer/Layer";
 import { Chart } from "chart.js/auto";
-import { toLonLat, getPointResolution } from "ol/proj";
-import { createRegularPolygon } from "ol/interaction/Draw";
+import { getPointResolution } from "ol/proj";
 import { fromCircle } from "ol/geom/Polygon";
+import OL3Parser from "jsts/org/locationtech/jts/io/OL3Parser";
+import WKTReader from "jsts/org/locationtech/jts/io/WKTReader";
+import GeoJSONReader from "jsts/org/locationtech/jts/io/GeoJSONReader.js";
+import { BufferOp } from "jsts/org/locationtech/jts/operation/buffer";
 
 proj4.defs("EPSG:4326", "+proj=longlat +datum=WGS84 +no_defs +type=crs");
 register(proj4);
@@ -223,7 +229,7 @@ const zoomExtentBtn = document.getElementById("zoom-extent");
 zoomExtentBtn.addEventListener("click", function () {
   map
     .getView()
-    .fit([345385.09991, 4319495.500793, 609873.6757, 4758401.232114], {
+    .fit([2064411.259926, 4774562.534805, 2399511.191928, 5332247.093174], {
       padding: [10, 10, 10, 10], // Optional padding around the extent
       maxZoom: 18, // Optional maximum zoom level
     });
@@ -2155,7 +2161,7 @@ function selectStyle(feature) {
   }
 }
 
-let selectSingleClick, featureID, url, extent, selectedFeatures;
+let selectSingleClick, featureID, url, extent, selectedFeatures, aaa;
 
 selectFeature.addEventListener("click", (e) => {
   map.removeInteraction(draw);
@@ -2169,6 +2175,7 @@ selectFeature.addEventListener("click", (e) => {
     selectedFeatures.forEach(function (feature) {
       console.log("Selected feature:", feature);
       extent = feature.getGeometry().getExtent();
+      aaa = feature;
     });
 
     deselectedFeatures.forEach(function (feature) {
@@ -3342,3 +3349,39 @@ function saveBufferToLayer(feature) {
       console.error("There was a problem with your fetch operation:", error);
     });
 }
+
+document.getElementById("draw-buffer").addEventListener("click", () => {
+  const parser = new OL3Parser();
+  parser.inject(
+    Point,
+    LineString,
+    LinearRing,
+    Polygon,
+    MultiPoint,
+    MultiLineString,
+    MultiPolygon
+  );
+
+  const jstsGeom = parser.read(aaa.getGeometry());
+
+  console.log(jstsGeom);
+  const buffered = BufferOp.bufferOp(jstsGeom, 40);
+
+  const bufferedGeometry = parser.write(buffered);
+  // Create a new feature with the buffered geometry
+  const bufferedFeature = new Feature({
+    geometry: bufferedGeometry,
+  });
+
+  // Create a vector source and add the feature to it
+  const vectorSource = new VectorSource({
+    features: [bufferedFeature],
+  });
+
+  // Create a vector layer and add the vector source to it
+  const vectorLayer = new VectorLayer({
+    source: vectorSource,
+  });
+
+  map.addLayer(vectorLayer);
+});

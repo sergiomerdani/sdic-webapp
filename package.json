@@ -10,10 +10,12 @@
     "vite": "^4.0.4"
   },
   "dependencies": {
+    "@types/jsts": "^0.17.23",
     "chart.js": "^4.4.2",
     "chartjs-to-image": "^1.2.2",
     "jspdf": "^2.5.1",
-    "ol": "latest",
+    "jsts": "^2.11.3",
+    "ol": "^9.2.2",
     "ol-ext": "^4.0.10",
     "proj4": "^2.9.0"
   }
