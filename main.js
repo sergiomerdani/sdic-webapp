@@ -3014,6 +3014,9 @@ function getAllLayerGroups() {
       return response.json(); // Parse the JSON from the response
     })
     .then((data) => {
+      const layerGroupArray = data.layerGroups.layerGroup;
+      console.log(layerGroupArray);
+
       const layerGroupName = data.layerGroups.layerGroup.map(
         (group) => group.name
       );
@@ -3028,7 +3031,7 @@ function getAllLayerGroups() {
       layerGroupName.forEach((group) => {
         const option = document.createElement("option");
         option.value = group;
-        option.text = group; // Use layer name as option text
+        option.text = group;
         layerGroupDropdown.appendChild(option);
       });
     })
@@ -3049,7 +3052,7 @@ function getAllLayers() {
   layersArray.forEach((layer) => {
     const option = document.createElement("option");
     option.value = layer.getSource().getParams().LAYERS;
-    option.text = option.value; // Use layer name as option text
+    option.text = option.value;
     newLayerDropdown.appendChild(option);
   });
 }
@@ -3075,6 +3078,7 @@ function updateLayerGroupWithNewLayer(
   const text = selectedDropDownLayer;
   const layerNameOnly = text.split(":")[1];
   const encodedLayerGroupName = encodeURIComponent(selectedDropDownGroup);
+
   fetch(
     `http://${host}:8080/geoserver/rest/layergroups/${encodedLayerGroupName}`,
     {
@@ -3092,7 +3096,6 @@ function updateLayerGroupWithNewLayer(
     })
     .then((data) => {
       const layerGroupData = data.layerGroup;
-      console.log(layerGroupData);
 
       // Ensure publishables.published is an array
       if (!Array.isArray(layerGroupData.publishables.published)) {
@@ -3119,7 +3122,6 @@ function updateLayerGroupWithNewLayer(
         layerGroup: layerGroupData,
       });
 
-      console.log(updatedLayerGroupData);
       return fetch(
         `http://${host}:8080/geoserver/rest/layergroups/${encodedLayerGroupName}`,
         {
@@ -3365,7 +3367,7 @@ document.getElementById("draw-buffer").addEventListener("click", () => {
   const jstsGeom = parser.read(aaa.getGeometry());
 
   console.log(jstsGeom);
-  const buffered = BufferOp.bufferOp(jstsGeom, 40);
+  const buffered = BufferOp.bufferOp(jstsGeom, 80);
 
   const bufferedGeometry = parser.write(buffered);
   // Create a new feature with the buffered geometry

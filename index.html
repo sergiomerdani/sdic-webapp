@@ -79,36 +79,6 @@
           <button class="fa-button" id="printContent" title="Print">
             <i class="fa-solid fa-print"></i>
           </button>
-          <button id="drawWfs" title="Create WFS">
-            <i class="fa-solid fa-square-plus"></i>
-          </button>
-          <button id="deleteWfs" title="Delete WFS">
-            <i class="fa-solid fa-trash-can"></i>
-          </button>
-          <button class="fa-button" id="modifyFeature" title="Modify Feature">
-            <i class="fa-solid fa-pen-to-square"></i>
-          </button>
-          <button class="fa-button" id="selectFeature" title="Select Feature">
-            <i class="fa-solid fa-arrow-pointer"></i>
-          </button>
-          <button class="fa-button" id="getInfo" title="Edit Attributes">
-            <i class="fa-solid fa-keyboard"></i>
-          </button>
-          <button class="fa-button" id="saveToLayer" title="Save to Layer">
-            <i class="fa-solid fa-floppy-disk"></i>
-          </button>
-          <button class="fa-button" id="editLayer" title="Edit Layer">
-            EDIT
-          </button>
-          <button class="fa-button" id="exportPDF" title="Export PDF">
-            Export PDF
-          </button>
-          <button id="addLayerGroupButton">Add Layer Group</button>
-          <button id="updateLayerGroupBtn">Update Layer Group</button>
-          <button id="filterAccepted">Filter Accepted</button>
-          <div class="search-wrapper"></div>
-          <button id="draw-circle">Draw Circle</button>
-          <button id="draw-buffer">Draw Buffer</button>
         </div>
       </div>
       <div class="selectControl" id="selectControl" hidden>
@@ -153,15 +123,6 @@
       <div id="popup-content"></div>
       <button type="submit" class="primary" id="saveForm">Save</button>
     </div>
-    <div id="input-popup" class="ol-popup">
-      <input
-        type="number"
-        id="radius-input"
-        placeholder="Enter radius in meters"
-      />
-      <button id="submit-btn">Submit</button>
-      <button id="close-popup">Close</button>
-    </div>
     <div id="myModal" class="modal">
       <div class="modal-content">
         <span class="close">&times;</span>
@@ -190,36 +151,6 @@
         </table>
       </div>
     </div>
-    <div id="addLayerGroupModal" class="modal">
-      <div class="modal-content">
-        <span class="close">&times;</span>
-        <h2>Add New Layer Group</h2>
-        <label for="layerGroupName">Layer Group Name:</label>
-        <input
-          type="text"
-          id="layerGroupName"
-          placeholder="Enter layer group name"
-        /><br /><br />
-        <label for="layerDropdown">Select Layer:</label>
-        <select id="layerDropdown"></select>
-        <br /><br />
-        <button id="submitBtn">Submit</button>
-      </div>
-    </div>
-    <div id="addLayerToGroupModal" class="modal">
-      <div class="modal-content">
-        <span class="close">&times;</span>
-        <h2>Select Layer Group</h2>
-        <label for="layerGroupDropdown">Layer Group Name:</label>
-        <select id="layerGroupDropdown"></select>
-        <br /><br />
-        <label for="newLayerDropdown">Select Layer:</label>
-        <select id="newLayerDropdown"></select>
-        <br /><br />
-        <button id="submitButton">Submit</button>
-      </div>
-    </div>
-
     <script type="module" src="./main.js"></script>
   </body>
 </html>
