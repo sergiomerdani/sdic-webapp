@@ -13,6 +13,7 @@
     "@types/jsts": "^0.17.23",
     "chart.js": "^4.4.2",
     "chartjs-to-image": "^1.2.2",
+    "file-saver": "^2.0.5",
     "jspdf": "^2.5.1",
     "jsts": "^2.11.3",
     "ol": "^9.2.2",

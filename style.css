@@ -57,7 +57,7 @@ header {
 .grid-container {
   display: grid;
   /* grid-template-columns: 100%; */
-  grid-template-rows: 30% 70%;
+  grid-template-rows: 5% 95%;
   height: 100vh;
 }
 
@@ -71,7 +71,7 @@ header {
 }
 
 .ol-search {
-  left: 1200px;
+  left: 10px;
 }
 
 #map {
@@ -98,7 +98,7 @@ header {
   padding: 30px;
   position: fixed;
   top: 90px;
-  right: 20px;
+  left: 20px;
   width: auto;
   height: auto;
   background-color: #c7e6ff;
