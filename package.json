@@ -7,17 +7,28 @@
     "serve": "vite preview"
   },
   "devDependencies": {
+    "concurrently": "^9.0.1",
+    "nodemon": "^3.1.6",
     "vite": "^4.0.4"
   },
   "dependencies": {
     "@types/jsts": "^0.17.23",
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.20.3",
     "chart.js": "^4.4.2",
     "chartjs-to-image": "^1.2.2",
+    "cors": "^2.8.5",
+    "express": "^4.21.0",
+    "express-session": "^1.18.0",
     "file-saver": "^2.0.5",
     "jspdf": "^2.5.1",
     "jsts": "^2.11.3",
-    "ol": "^9.2.2",
+    "ol": "^9.2.4",
     "ol-ext": "^4.0.10",
-    "proj4": "^2.9.0"
+    "pg": "^8.13.0",
+    "pg-hstore": "^2.3.4",
+    "proj4": "^2.9.0",
+    "sequelize": "^6.37.3",
+    "sequelize-cli": "^6.6.2"
   }
 }
