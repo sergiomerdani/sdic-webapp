@@ -1,3 +1,4 @@
+require("dotenv").config();
 const express = require("express");
 const bodyParser = require("body-parser");
 const bcrypt = require("bcryptjs");
@@ -5,18 +6,22 @@ const session = require("express-session");
 const { Sequelize } = require("sequelize");
 const { User } = require("./models"); // Import User model
 const path = require("path");
-
+const crypto = require("crypto");
+const secretKey = crypto.randomBytes(32).toString("hex");
+console.log(secretKey);
 const app = express();
 const port = 3000;
 
 // Middleware
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+// Root route - redirect based on authentication
+app.get("/", (req, res) => {
+  res.redirect("/login");
+});
 
-// Serve static files from the "public" folder
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(__dirname, "public", "dist")));
 
-// Session middleware
 app.use(
   session({
     secret: "your-secret-key",
@@ -24,6 +29,18 @@ app.use(
     saveUninitialized: true,
   })
 );
+// Session middleware
+// app.use(
+//   session({
+//     secret: process.env.SESSION_SECRET, // Use the secret from the environment variable
+//     resave: false,
+//     saveUninitialized: true,
+//     cookie: {
+//       secure: true, // Ensure this is only true if you are using HTTPS
+//       httpOnly: true,
+//     },
+//   })
+// );
 
 // Database connection
 const sequelize = new Sequelize("postgis_sample", "postgres", "postgres", {
@@ -40,17 +57,17 @@ sequelize
 // Check if user is authenticated (middleware)
 function isAuthenticated(req, res, next) {
   if (req.session.user) {
-    return next(); // User is authenticated, continue to the next middleware or route
+    return next();
   }
-  res.redirect("/login"); // If not authenticated, redirect to login page
+  res.redirect("/login");
 }
 
 // Serve the login/register page
 app.get("/login", (req, res) => {
   if (req.session.user) {
-    return res.redirect("/map"); // Redirect to dashboard if already logged in
+    return res.redirect("/map");
   }
-  res.sendFile(path.join(__dirname, "public", "auth.html")); // Serve the login/register page
+  res.sendFile(path.join(__dirname, "public", "auth.html"));
 });
 
 // User registration route
@@ -94,8 +111,8 @@ app.post("/login", async (req, res) => {
     // Compare passwords
     const isMatch = await bcrypt.compare(password, user.password);
     if (isMatch) {
-      req.session.user = user; // Store user in session
-      res.redirect("/map"); // Redirect to dashboard (map) after successful login
+      req.session.user = user;
+      res.redirect("/map"); // Redirecting to frontend server (replace with your frontend URL)
     } else {
       res.status(400).send("Invalid credentials");
     }
@@ -106,7 +123,7 @@ app.post("/login", async (req, res) => {
 
 // User dashboard (map) route (secured)
 app.get("/map", isAuthenticated, (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html")); // Serve the dashboard (map) page
+  res.sendFile(path.join(__dirname, "public/dist/index.html")); // Serve the map HTML file
 });
 
 // Logout route
@@ -115,7 +132,7 @@ app.get("/logout", (req, res) => {
     if (err) {
       return res.status(500).send("Error logging out");
     }
-    res.redirect("/login"); // Redirect to login page after logout
+    res.redirect("/login"); // Correctly redirect with http://
   });
 });
 
