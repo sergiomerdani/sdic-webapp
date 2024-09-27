@@ -7,8 +7,7 @@ const { Sequelize } = require("sequelize");
 const { User } = require("./models"); // Import User model
 const path = require("path");
 const crypto = require("crypto");
-const secretKey = crypto.randomBytes(32).toString("hex");
-console.log(secretKey);
+
 const app = express();
 const port = 3000;
 
@@ -21,26 +20,20 @@ app.get("/", (req, res) => {
 });
 
 app.use(express.static(path.join(__dirname, "public", "dist")));
+app.use(express.static(path.join(__dirname, "public")));
 
+// Session middleware
 app.use(
   session({
-    secret: "your-secret-key",
+    secret: process.env.SESSION_SECRET, // Use the secret from the environment variable
     resave: false,
     saveUninitialized: true,
+    cookie: {
+      secure: false, // Ensure this is only true if you are using HTTPS
+      httpOnly: true,
+    },
   })
 );
-// Session middleware
-// app.use(
-//   session({
-//     secret: process.env.SESSION_SECRET, // Use the secret from the environment variable
-//     resave: false,
-//     saveUninitialized: true,
-//     cookie: {
-//       secure: true, // Ensure this is only true if you are using HTTPS
-//       httpOnly: true,
-//     },
-//   })
-// );
 
 // Database connection
 const sequelize = new Sequelize("postgis_sample", "postgres", "postgres", {
